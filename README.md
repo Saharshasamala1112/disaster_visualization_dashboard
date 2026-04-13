@@ -451,17 +451,6 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-### Environment Variables
-
-```bash
-# .env.local
-NEXT_PUBLIC_USGS_API_URL=https://earthquake.usgs.gov/fdsnws/event/1/query
-NEXT_PUBLIC_CACHE_TTL_MS=6000  # 6s polling interval
-OPENWEATHER_API_KEY=your_openweather_key  # optional, enables live cyclone wind feed
-```
-
----
-
 ## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch strategy, coding standards, and PR checklist.
@@ -521,19 +510,19 @@ npm run build
 ## 🗓️ Roadmap
 
 **Q2 2026:**
-- [ ] Multi-source data aggregation (OpenWeather, NOAA, FIRMS)
-- [ ] Historic incident replay (playback timeline)
-- [ ] Advanced filtering (by severity, geography, type)
+- [ ] Role-based access control (Responder, Analyst, Public)
+- [ ] Multi-language alerting foundation (push + SMS fallback)
+- [ ] Resource allocation and task assignment module
 
 **Q3 2026:**
-- [ ] Team collaboration (WebSocket live cursors)
-- [ ] Mobile-responsive UI (tablet + phone)
-- [ ] Custom alert rules (push notifications)
+- [ ] WebSocket upgrades (Supabase Realtime / Socket.io hybrid)
+- [ ] What-if simulation mode for preparedness planning
+- [ ] Tablet-first field UI iteration (offline-friendly workflows)
 
 **Q4 2026:**
 - [ ] ML-powered risk prediction
-- [ ] Integration with emergency 911 systems
-- [ ] Voice command activation
+- [ ] Integration with emergency escalation systems
+- [ ] Command-center voice workflow support
 
 ---
 

@@ -145,6 +145,8 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const config = disasterConfigBySlug[slug];
   const [activePanel, setActivePanel] = useState<OpsPanel>("overview");
   const [pulseEnabled, setPulseEnabled] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
+  const [controlRailCollapsed, setControlRailCollapsed] = useState(false);
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -524,7 +526,8 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <section className={cn("grid grid-cols-1 gap-6", focusMode ? "xl:grid-cols-1" : "xl:grid-cols-[300px_minmax(0,1fr)]")}>
+        {!focusMode && !controlRailCollapsed && (
         <aside className="rounded-[1.8rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(241,245,249,0.9))] p-4 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.92),rgba(9,9,11,0.9))]">
           <div className="mb-3 px-2 text-xs uppercase tracking-[0.22em] text-zinc-500">Control panels</div>
           <div className="space-y-2">
@@ -558,16 +561,62 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             })}
           </div>
         </aside>
+        )}
 
         <div className="min-w-0 space-y-4">
           <div className="rounded-[1.4rem] border border-zinc-200/80 bg-white/75 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-zinc-900/70">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3 dark:border-white/8 dark:bg-black/20">
               <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Current panel</div>
-              <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
-                <activePanelMeta.icon className="size-3" />
-                <span>{activePanelMeta.label}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                  <activePanelMeta.icon className="size-3" />
+                  <span>{activePanelMeta.label}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFocusMode((value) => !value)}
+                  className="rounded-full border border-zinc-300/80 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-700 transition hover:border-zinc-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-white/30"
+                >
+                  {focusMode ? "Exit focus" : "Focus mode"}
+                </button>
+                {!focusMode && (
+                  <button
+                    type="button"
+                    onClick={() => setControlRailCollapsed((value) => !value)}
+                    className="rounded-full border border-zinc-300/80 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-700 transition hover:border-zinc-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-white/30"
+                  >
+                    {controlRailCollapsed ? "Show controls" : "Hide controls"}
+                  </button>
+                )}
               </div>
             </div>
+            {(focusMode || controlRailCollapsed) && (
+              <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200/80 bg-white/70 p-2 dark:border-white/10 dark:bg-black/20">
+                <div className="flex w-max min-w-full gap-2">
+                  {panelButtons.map((panel) => {
+                    const Icon = panel.icon;
+                    const active = activePanel === panel.id;
+
+                    return (
+                      <button
+                        key={panel.id}
+                        type="button"
+                        onClick={() => handlePanelChange(panel.id)}
+                        className={cn(
+                          "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium uppercase tracking-[0.12em] transition",
+                          active
+                            ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                            : "border-zinc-300/70 bg-white text-zinc-700 hover:border-zinc-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-white/30"
+                        )}
+                      >
+                        <Icon className="size-3.5" />
+                        {panel.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200/70 dark:border-white/10">
               <DisasterTabs />
             </div>

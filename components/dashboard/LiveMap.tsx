@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -58,6 +58,32 @@ export default function LiveMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<LeafletMap | null>(null);
   const overlays = useRef<LayerGroup | null>(null);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
+  const [legendCollapsed, setLegendCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      setIsCompactViewport(false);
+      setLegendCollapsed(false);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 480px)');
+
+    const syncCompactMode = (event: MediaQueryList | MediaQueryListEvent) => {
+      const compact = event.matches;
+      setIsCompactViewport(compact);
+      setLegendCollapsed(compact);
+    };
+
+    syncCompactMode(mediaQuery);
+    const handler = (event: MediaQueryListEvent) => syncCompactMode(event);
+
+    mediaQuery.addEventListener('change', handler);
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -194,35 +220,58 @@ export default function LiveMap({
         <div className="text-xs text-zinc-400 font-medium">{subTitle}</div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-4 right-3 z-[1000] w-44 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-3 py-2.5 shadow-lg backdrop-blur-md sm:bottom-5 sm:right-5 sm:w-56">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">Risk Scale</div>
-        <div className="space-y-1.5">
-          {([
-            { color: '#22d3ee', label: 'Low', pct: '0–32%', desc: 'Monitor' },
-            { color: '#22c55e', label: 'Moderate', pct: '33–51%', desc: 'Watch' },
-            { color: '#eab308', label: 'High', pct: '52–69%', desc: 'Prepare' },
-            { color: '#ea580c', label: 'Severe', pct: '70–84%', desc: 'Activate' },
-            { color: '#f43f5e', label: 'Critical', pct: '85–100%', desc: 'Act now' },
-          ] as const).map(({ color, label, pct, desc }) => (
-            <div key={label} className="rounded-md border border-white/5 bg-white/3 p-1.5">
-              <div className="flex items-center gap-2">
-                <div className="relative flex h-5 w-10 overflow-hidden rounded border border-white/10 shadow-inner flex-shrink-0">
-                  <div className="flex-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}22)` }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-semibold text-white">{label}</div>
-                  <div className="text-[9px] text-zinc-400 truncate">{desc}</div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="text-[9px] font-mono text-zinc-400">{pct}</div>
-                </div>
-              </div>
+      <div className="pointer-events-none absolute bottom-4 right-3 z-[1000] sm:bottom-5 sm:right-5">
+        {isCompactViewport && legendCollapsed ? (
+          <button
+            type="button"
+            onClick={() => setLegendCollapsed(false)}
+            className="pointer-events-auto rounded-full border border-white/20 bg-zinc-900/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-100 shadow-lg backdrop-blur-md"
+          >
+            Show legend
+          </button>
+        ) : (
+          <div className="pointer-events-auto w-44 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-3 py-2.5 shadow-lg backdrop-blur-md sm:w-56">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">Risk Scale</div>
+              {isCompactViewport && (
+                <button
+                  type="button"
+                  onClick={() => setLegendCollapsed(true)}
+                  className="rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-200"
+                >
+                  Hide
+                </button>
+              )}
             </div>
-          ))}
-        </div>
-        <div className="mt-2 border-t border-white/10 pt-1.5 text-[9px] font-medium text-zinc-400">
-          <span className="text-emerald-300">●</span> Pulse speed = urgency
-        </div>
+            <div className="space-y-1.5">
+              {([
+                { color: '#22d3ee', label: 'Low', pct: '0–32%', desc: 'Monitor' },
+                { color: '#22c55e', label: 'Moderate', pct: '33–51%', desc: 'Watch' },
+                { color: '#eab308', label: 'High', pct: '52–69%', desc: 'Prepare' },
+                { color: '#ea580c', label: 'Severe', pct: '70–84%', desc: 'Activate' },
+                { color: '#f43f5e', label: 'Critical', pct: '85–100%', desc: 'Act now' },
+              ] as const).map(({ color, label, pct, desc }) => (
+                <div key={label} className="rounded-md border border-white/5 bg-white/3 p-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex h-5 w-10 flex-shrink-0 overflow-hidden rounded border border-white/10 shadow-inner">
+                      <div className="flex-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}22)` }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-semibold text-white">{label}</div>
+                      <div className="truncate text-[9px] text-zinc-400">{desc}</div>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-[9px] font-mono text-zinc-400">{pct}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 border-t border-white/10 pt-1.5 text-[9px] font-medium text-zinc-400">
+              <span className="text-emerald-300">●</span> Pulse speed = urgency
+            </div>
+          </div>
+        )}
       </div>
 
       <style jsx global>{`

@@ -20,7 +20,7 @@ export default function DashboardHomePage() {
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {mode === 'operations'
               ? 'Real-time monitoring, response coordination, and situational awareness'
-              : 'Historical trends, correlations, and geospatial distribution analysis'}
+              : 'Historical trends, correlation/confusion matrix, and geospatial distribution analysis'}
           </p>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">

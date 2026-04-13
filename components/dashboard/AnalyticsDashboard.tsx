@@ -107,7 +107,7 @@ export function AnalyticsDashboard() {
       <div className="rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white to-slate-100 p-4 sm:p-6 dark:border-white/10 dark:from-zinc-900 dark:to-zinc-950">
         <div className="mb-4 flex items-center gap-3">
           <BarChart3 className="h-5 w-5 text-blue-400" />
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Correlation Matrix</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Correlation / Confusion Matrix</h2>
           <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-500">Hover cells for values</span>
         </div>
         <div className="overflow-x-auto">

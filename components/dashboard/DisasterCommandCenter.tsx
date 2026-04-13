@@ -22,6 +22,21 @@ type DataFreshness = "live" | "stale" | "offline";
 type OpsPanel = "overview" | "map" | "signals" | "actions" | "incidents" | "features";
 type UserRole = "responder" | "analyst" | "public";
 
+const roleMeta: Record<UserRole, { label: string; hint: string }> = {
+  responder: {
+    label: "Responder",
+    hint: "Operational controls, field actions, and live map triage",
+  },
+  analyst: {
+    label: "Analyst",
+    hint: "Signals-first decision intelligence and incident trend analysis",
+  },
+  public: {
+    label: "Public",
+    hint: "Simplified safety view with non-sensitive incident information",
+  },
+};
+
 const panelMotionProfiles: Record<
   OpsPanel,
   {
@@ -216,8 +231,23 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     if (userRole === "public") {
       return ["overview", "map", "incidents", "features"] as OpsPanel[];
     }
+    if (userRole === "analyst") {
+      return ["overview", "map", "signals", "incidents", "features"] as OpsPanel[];
+    }
     return panelButtons.map((panel) => panel.id);
   }, [panelButtons, userRole]);
+
+  useEffect(() => {
+    if (userRole === "analyst") {
+      setActivePanel("signals");
+      return;
+    }
+    if (userRole === "public") {
+      setActivePanel("overview");
+      return;
+    }
+    setActivePanel("map");
+  }, [userRole]);
 
   useEffect(() => {
     const syncPanelFromUrl = () => {
@@ -315,6 +345,23 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const signals = live?.signals ?? config.signals;
   const actions = live?.actions ?? config.actions;
   const incidents = live?.incidents ?? [];
+  const visibleStats = useMemo(() => {
+    if (userRole === "public") return stats.slice(0, 2);
+    return stats;
+  }, [stats, userRole]);
+  const visibleSignals = useMemo(() => {
+    if (userRole === "public") return signals.slice(0, 2);
+    return signals;
+  }, [signals, userRole]);
+  const visibleActions = useMemo(() => {
+    if (userRole === "analyst") return actions.slice(0, 2);
+    if (userRole === "public") return [];
+    return actions;
+  }, [actions, userRole]);
+  const visibleIncidents = useMemo(() => {
+    if (userRole === "public") return incidents.slice(0, 3);
+    return incidents;
+  }, [incidents, userRole]);
   const updatedAt = live?.updatedAt ?? "";
   const motionProfile = panelMotionProfiles[activePanel];
   const staggerProfile = panelStaggerProfiles[activePanel];
@@ -408,7 +455,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
           </CardHeader>
           <CardContent>
             <motion.div variants={childContainerVariants} initial="hidden" animate="show" className="space-y-4">
-            {signals.map((signal, index) => {
+            {visibleSignals.map((signal, index) => {
               const Icon = signalIcons[index % signalIcons.length];
               return (
                 <motion.div variants={childItemVariants} key={signal.title} className={cn("rounded-2xl border border-white/8 bg-black/20 p-4 transition-all duration-300", hoverToneClass)}>
@@ -441,7 +488,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
           </CardHeader>
           <CardContent>
             <motion.div variants={childContainerVariants} initial="hidden" animate="show" className="space-y-3">
-            {actions.map((action) => (
+            {visibleActions.map((action) => (
               <motion.div variants={childItemVariants} key={action.title} className={cn("rounded-2xl border border-white/8 bg-black/20 p-4 transition-all duration-300", hoverToneClass)}>
                 <div className="text-sm font-medium text-white">{action.title}</div>
                 <div className="mt-2 flex items-center justify-between text-xs text-zinc-400">
@@ -460,7 +507,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
       return (
         <motion.div variants={childContainerVariants} initial="hidden" animate="show">
           <motion.div variants={childItemVariants}>
-            <IncidentFeed incidents={incidents} updatedAt={updatedAt} freshness={freshness} />
+            <IncidentFeed incidents={visibleIncidents} updatedAt={updatedAt} freshness={freshness} />
           </motion.div>
         </motion.div>
       );
@@ -521,7 +568,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 {config.subtitle}
               </motion.div>
               <motion.div variants={childContainerVariants} className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {signals.slice(0, 2).map((signal) => (
+                {visibleSignals.slice(0, 2).map((signal) => (
                   <motion.div variants={childItemVariants} key={signal.title} className={cn("rounded-2xl border border-white/8 bg-black/20 p-4 transition-all duration-300", hoverToneClass)}>
                     <div className="text-xs uppercase tracking-[0.12em] text-zinc-500">{signal.title}</div>
                     <div className="mt-1 text-xl font-semibold text-white">{signal.value}</div>
@@ -532,7 +579,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
           </Card>
         </motion.div>
         <motion.div variants={childItemVariants}>
-          <IncidentFeed incidents={incidents.slice(0, 3)} updatedAt={updatedAt} freshness={freshness} />
+          <IncidentFeed incidents={visibleIncidents.slice(0, 3)} updatedAt={updatedAt} freshness={freshness} />
         </motion.div>
       </motion.div>
     );
@@ -580,10 +627,14 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                   <option value="public">Public</option>
                 </select>
               </div>
+              <Badge variant="outline" className="border-zinc-300/70 bg-white/80 px-3 py-1 uppercase tracking-[0.12em] text-zinc-700 dark:border-white/15 dark:bg-white/5 dark:text-zinc-300">
+                {roleMeta[userRole].label} view
+              </Badge>
             </div>
             <div className="space-y-3">
               <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-zinc-900 lg:text-5xl dark:text-white">{config.pageTitle}</h2>
               <p className="max-w-2xl text-base leading-7 text-zinc-600 lg:text-lg dark:text-zinc-300">{config.subtitle}</p>
+              <p className="max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">{roleMeta[userRole].hint}</p>
             </div>
           </div>
 
@@ -604,7 +655,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
       </section>
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((item) => (
+        {visibleStats.map((item) => (
           <Card key={item.label} className="border-white/10 bg-zinc-900/85 text-white shadow-[0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm">
             <CardHeader className="pb-3">
               <CardTitle className={cn("flex items-center gap-2 text-sm uppercase tracking-[0.18em]", item.titleClassName)}>

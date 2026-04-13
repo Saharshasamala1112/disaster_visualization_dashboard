@@ -9,9 +9,11 @@ export const viewport: Viewport = {
   userScalable: true,
   viewportFit: "cover",
   colorScheme: "dark",
+  themeColor: "#22c55e",
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://disaster-visualization-dashboard.vercel.app"),
   title: "Disaster Response Dashboard",
   description: "Enterprise-grade real-time disaster monitoring, response coordination, and situational awareness platform",
   manifest: "/manifest.json",
@@ -32,7 +34,6 @@ export const metadata: Metadata = {
     telephone: false,
     email: false,
   },
-  themeColor: "#22c55e",
   keywords: ["disaster", "emergency", "response", "monitoring", "hazard", "real-time"],
   openGraph: {
     type: "website",

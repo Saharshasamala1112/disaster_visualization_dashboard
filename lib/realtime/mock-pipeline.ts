@@ -151,6 +151,15 @@ type UsgsResponse = {
   features?: UsgsFeature[];
 };
 
+type OpenWeatherResponse = {
+  wind?: {
+    speed?: number;
+  };
+  weather?: Array<{
+    description?: string;
+  }>;
+};
+
 async function fetchJsonWithTimeout<T>(url: string, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -172,7 +181,36 @@ async function fetchJsonWithTimeout<T>(url: string, timeoutMs: number): Promise<
 }
 
 export async function ingestWeatherSignal(slug: DisasterSlug) {
-  const value = slug === "cyclone" ? `${jitter(110, 20)} km/h` : `${jitter(64, 15)} mm/hr`;
+  if (slug === "cyclone") {
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (apiKey) {
+      try {
+        // Odisha coast sample point for cyclone-risk wind observations.
+        const openWeather = await fetchJsonWithTimeout<OpenWeatherResponse>(
+          `https://api.openweathermap.org/data/2.5/weather?lat=19.8&lon=85.8&appid=${apiKey}&units=metric`,
+          3000
+        );
+
+        const windMs = openWeather.wind?.speed;
+        if (typeof windMs === "number") {
+          const windKmh = Math.round(windMs * 3.6);
+          return {
+            provider: "openweather-live",
+            value: `${windKmh} km/h`,
+          };
+        }
+      } catch {
+        // Keep fallback path stable for command center availability.
+      }
+    }
+
+    return {
+      provider: "mock-weather-fallback",
+      value: `${jitter(110, 20)} km/h`,
+    };
+  }
+
+  const value = `${jitter(64, 15)} mm/hr`;
   return {
     provider: "mock-weather-api",
     value,

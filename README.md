@@ -2,7 +2,31 @@
 
 **Enterprise-grade real-time disaster monitoring, response coordination, and situational awareness platform** — built with Next.js 16, Turbopack, Leaflet, and live operational intelligence.
 
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen) ![Next.js](https://img.shields.io/badge/next.js-16.2.3-black?logo=nextjs) ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue?logo=typescript) ![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-production--ready-brightgreen) ![Next.js](https://img.shields.io/badge/next.js-16.2.3-black?logo=nextjs) ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue?logo=typescript) ![Leaflet](https://img.shields.io/badge/maps-leaflet-199900) ![Framer Motion](https://img.shields.io/badge/animation-framer--motion-ff4d8d) ![License](https://img.shields.io/badge/license-MIT-green)
+
+## Demo
+
+- Live App: https://disaster-visualization-dashboard.vercel.app
+- Repository: https://github.com/Saharshasamala1112/disaster_visualization_dashboard
+
+## Preview
+
+> Add screenshots/GIFs under `public/screenshots/` and keep these links updated.
+
+![Dashboard Overview](public/screenshots/overview.png)
+![Map Heatmap](public/screenshots/heatmap.png)
+![Analytics View](public/screenshots/analytics.png)
+
+## Feature Highlights
+
+| Capability | Description | Status |
+|---|---|---|
+| Live Command Center | 6-panel operations layout with scenario tabs | ✅ |
+| Risk Heatmap | 5-tier color scale, pulsing hotspots, concentric gradients | ✅ |
+| Real Data Feed | USGS live earthquakes + OpenWeather live cyclone winds (when key provided) | ✅ |
+| Offline Resilience | Local cache with freshness states (`live/stale/offline`) | ✅ |
+| Visualization Mode | Analytics dashboard with correlations and trend exports | ✅ |
+| Accessibility | Reduced-motion support + pulse toggle | ✅ |
 
 ## 🎯 Problem Statement
 
@@ -169,8 +193,8 @@ Unlike commodity GIS overlays, this risk heatmap blends **three orthogonal data 
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/disaster-dashboard.git
-cd disaster-dashboard
+git clone https://github.com/Saharshasamala1112/disaster_visualization_dashboard.git
+cd disaster_visualization_dashboard
 
 # Install dependencies
 npm install
@@ -383,11 +407,14 @@ CMD ["npm", "start"]
 # .env.local
 NEXT_PUBLIC_USGS_API_URL=https://earthquake.usgs.gov/fdsnws/event/1/query
 NEXT_PUBLIC_CACHE_TTL_MS=6000  # 6s polling interval
+OPENWEATHER_API_KEY=your_openweather_key  # optional, enables live cyclone wind feed
 ```
 
 ---
 
 ## 🤝 Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch strategy, coding standards, and PR checklist.
 
 Contributions welcome! Please:
 
@@ -468,8 +495,8 @@ MIT © 2026 Disaster Dashboard Contributors
 
 ## 💬 Support
 
-- **Issues**: [Open GitHub issue](https://github.com/yourusername/disaster-dashboard/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/disaster-dashboard/discussions)
+- **Issues**: [Open GitHub issue](https://github.com/Saharshasamala1112/disaster_visualization_dashboard/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Saharshasamala1112/disaster_visualization_dashboard/discussions)
 - **Email**: support@disasterdashboard.dev
 
 ---

@@ -6,7 +6,7 @@
 
 ## Demo
 
-- Live App: set after deployment (`vercel --prod`)
+- Live App: https://disaster-dashboard.vercel.app
 - Repository: https://github.com/Saharshasamala1112/disaster_visualization_dashboard
 - Deploy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Saharshasamala1112/disaster_visualization_dashboard)
 

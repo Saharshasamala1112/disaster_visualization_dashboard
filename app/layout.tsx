@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://disaster-visualization-dashboard.vercel.app"),
+  metadataBase: new URL("https://disaster-dashboard.vercel.app"),
   title: "Disaster Response Dashboard",
   description: "Enterprise-grade real-time disaster monitoring, response coordination, and situational awareness platform",
   manifest: "/manifest.json",

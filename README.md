@@ -6,7 +6,7 @@
 
 ## Demo
 
-- Live App: https://disaster-visualization-dashboard.vercel.app
+- Live App: pending deployment (run `vercel --prod` and update this URL)
 - Repository: https://github.com/Saharshasamala1112/disaster_visualization_dashboard
 
 ## Preview

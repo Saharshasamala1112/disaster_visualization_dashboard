@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-label="Offline mode indicator preview">
+  <rect width="1400" height="800" fill="#0f172a"/>
+  <text x="60" y="100" fill="#e5e7eb" font-family="Segoe UI, Arial" font-size="38" font-weight="700">Offline-First Indicator & Stale Data Mode</text>
+  <rect x="80" y="180" width="1240" height="500" rx="20" fill="#111827" stroke="#1f2937"/>
+  <rect x="130" y="240" width="280" height="80" rx="16" fill="#7c2d12" stroke="#ea580c"/>
+  <text x="170" y="290" fill="#fdba74" font-family="Segoe UI, Arial" font-size="28" font-weight="700">OFFLINE</text>
+  <rect x="430" y="240" width="340" height="80" rx="16" fill="#78350f" stroke="#f59e0b"/>
+  <text x="470" y="290" fill="#fcd34d" font-family="Segoe UI, Arial" font-size="28" font-weight="700">STALE DATA</text>
+  <rect x="790" y="240" width="430" height="80" rx="16" fill="#052e16" stroke="#22c55e"/>
+  <text x="830" y="290" fill="#86efac" font-family="Segoe UI, Arial" font-size="28" font-weight="700">AUTO-RETRY ACTIVE</text>
+  <text x="140" y="400" fill="#cbd5e1" font-family="Segoe UI, Arial" font-size="26">Last updated: 2026-04-13 18:42:11 UTC</text>
+  <text x="140" y="450" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="22">Rendering cached operational snapshot until network recovers.</text>
+  <text x="140" y="500" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="22">No data-loss mode enabled for field teams.</text>
+</svg>

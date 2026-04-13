@@ -6,16 +6,16 @@
 
 ## Demo
 
-- Live App: pending deployment (run `vercel --prod` and update this URL)
+- Live App: set after deployment (`vercel --prod`)
 - Repository: https://github.com/Saharshasamala1112/disaster_visualization_dashboard
+- Deploy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Saharshasamala1112/disaster_visualization_dashboard)
 
 ## Preview
 
-> Add screenshots/GIFs under `public/screenshots/` and keep these links updated.
-
-![Dashboard Overview](public/screenshots/overview.png)
-![Map Heatmap](public/screenshots/heatmap.png)
-![Analytics View](public/screenshots/analytics.png)
+![Full 6-Panel Layout](public/screenshots/overview.svg)
+![Pulsing Heatmap](public/screenshots/heatmap.svg)
+![Offline Mode Indicator](public/screenshots/offline.svg)
+![Disaster Tabs](public/screenshots/tabs.svg)
 
 ## Feature Highlights
 
@@ -23,10 +23,16 @@
 |---|---|---|
 | Live Command Center | 6-panel operations layout with scenario tabs | ✅ |
 | Risk Heatmap | 5-tier color scale, pulsing hotspots, concentric gradients | ✅ |
-| Real Data Feed | USGS live earthquakes + OpenWeather live cyclone winds (when key provided) | ✅ |
+| Real Data Feed | USGS live earthquakes + OpenWeather cyclone + NASA FIRMS wildfire (key-gated) | ✅ |
 | Offline Resilience | Local cache with freshness states (`live/stale/offline`) | ✅ |
 | Visualization Mode | Analytics dashboard with correlations and trend exports | ✅ |
 | Accessibility | Reduced-motion support + pulse toggle | ✅ |
+
+### Hybrid Mode (What It Adds)
+
+- **Operations Mode**: command-center workflow (map/signals/actions/incidents).
+- **Analytics Mode**: trend summaries, correlation matrix, regional distribution, exportable JSON/CSV.
+- **Why it matters**: supports both incident response teams and analyst/reporting workflows in one UI.
 
 ## 🎯 Problem Statement
 
@@ -67,6 +73,8 @@ A **unified command center** that synthesizes real-time hazard data, live incide
 
 ### 📡 **Live Data Integration**
 - **Real USGS Earthquake API** integration with 3s timeout + fallback mechanism
+- **Real OpenWeather Cyclone Wind API** integration (when `OPENWEATHER_API_KEY` is present)
+- **Real NASA FIRMS Wildfire Feed** integration (when `FIRMS_API_KEY` is present)
 - **Dynamic polling** (6s intervals) with smart caching layer
 - **Provider attribution** — tracks data source (live vs fallback)
 - **Extensible ingestion pipeline** for OpenWeather cyclones, NOAA floods, fire data agencies

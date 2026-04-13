@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-label="Disaster tabs preview">
+  <rect width="1400" height="800" fill="#0b1220"/>
+  <text x="60" y="100" fill="#e5e7eb" font-family="Segoe UI, Arial" font-size="38" font-weight="700">Scenario Tabs: Cyclone / Earthquake / Flood / Wildfire</text>
+  <rect x="80" y="180" width="1240" height="120" rx="20" fill="#111827" stroke="#1f2937"/>
+  <rect x="130" y="210" width="240" height="60" rx="14" fill="#0ea5e9"/><text x="198" y="248" fill="#e0f2fe" font-family="Segoe UI, Arial" font-size="24" font-weight="700">Cyclone</text>
+  <rect x="390" y="210" width="260" height="60" rx="14" fill="#1f2937"/><text x="450" y="248" fill="#cbd5e1" font-family="Segoe UI, Arial" font-size="24" font-weight="700">Earthquake</text>
+  <rect x="670" y="210" width="220" height="60" rx="14" fill="#1f2937"/><text x="746" y="248" fill="#cbd5e1" font-family="Segoe UI, Arial" font-size="24" font-weight="700">Flood</text>
+  <rect x="910" y="210" width="250" height="60" rx="14" fill="#1f2937"/><text x="978" y="248" fill="#cbd5e1" font-family="Segoe UI, Arial" font-size="24" font-weight="700">Wildfire</text>
+  <rect x="80" y="340" width="1240" height="370" rx="20" fill="#111827" stroke="#1f2937"/>
+  <text x="120" y="410" fill="#38bdf8" font-family="Segoe UI, Arial" font-size="30" font-weight="700">Cyclone Panel Active</text>
+  <text x="120" y="460" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="22">Landfall window, evacuation demand, shelters online, and risk map</text>
+</svg>

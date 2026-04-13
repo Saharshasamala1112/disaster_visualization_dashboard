@@ -160,6 +160,36 @@ type OpenWeatherResponse = {
   }>;
 };
 
+function parseFirmsConfidenceFromCsv(csv: string): number | null {
+  const lines = csv.trim().split(/\r?\n/);
+  if (lines.length < 2) return null;
+
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const sample = lines[1].split(",");
+  if (sample.length !== headers.length) return null;
+
+  const confidenceIndex = headers.indexOf("confidence");
+  const brightIndex = headers.indexOf("bright_ti4");
+
+  if (confidenceIndex >= 0) {
+    const raw = sample[confidenceIndex]?.trim();
+    const mapped = raw === "h" ? 90 : raw === "n" ? 75 : raw === "l" ? 55 : Number(raw);
+    if (!Number.isNaN(mapped) && mapped > 0) {
+      return Math.min(100, Math.max(1, Math.round(mapped)));
+    }
+  }
+
+  if (brightIndex >= 0) {
+    const brightness = Number(sample[brightIndex]);
+    if (!Number.isNaN(brightness) && brightness > 0) {
+      // Approximate confidence from thermal brightness range.
+      return Math.min(100, Math.max(35, Math.round((brightness - 280) * 0.8)));
+    }
+  }
+
+  return null;
+}
+
 async function fetchJsonWithTimeout<T>(url: string, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -175,6 +205,26 @@ async function fetchJsonWithTimeout<T>(url: string, timeoutMs: number): Promise<
     }
 
     return (await response.json()) as T;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchTextWithTimeout(url: string, timeoutMs: number): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
+    return await response.text();
   } finally {
     clearTimeout(timer);
   }
@@ -237,9 +287,36 @@ export async function ingestGeoSensorSignal(slug: DisasterSlug) {
     }
   }
 
+  if (slug === "wildfire") {
+    const firmsKey = process.env.FIRMS_API_KEY;
+    if (firmsKey) {
+      try {
+        const csv = await fetchTextWithTimeout(
+          `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${firmsKey}/VIIRS_SNPP_NRT/world/1`,
+          3500
+        );
+
+        const confidence = parseFirmsConfidenceFromCsv(csv);
+        if (confidence !== null) {
+          return {
+            provider: "nasa-firms-live",
+            value: `${confidence}%`,
+          };
+        }
+      } catch {
+        // Continue to fallback to preserve dashboard uptime.
+      }
+    }
+  }
+
   const value = slug === "earthquake" ? `${(4.4 + Math.random() * 1.6).toFixed(1)} Mw` : `${jitter(72, 10)}%`;
   return {
-    provider: slug === "earthquake" ? "usgs-fallback" : "mock-geo-sensors",
+    provider:
+      slug === "earthquake"
+        ? "usgs-fallback"
+        : slug === "wildfire"
+          ? "nasa-firms-fallback"
+          : "mock-geo-sensors",
     value,
   };
 }

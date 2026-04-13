@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-label="Pulsing heatmap preview">
+  <rect width="1400" height="800" fill="#0b1220"/>
+  <text x="60" y="90" fill="#e5e7eb" font-family="Segoe UI, Arial" font-size="38" font-weight="700">Risk Heatmap with Pulsing Hotspots</text>
+  <g opacity="0.9">
+    <circle cx="430" cy="430" r="180" fill="#22d3ee" fill-opacity="0.14"/><circle cx="430" cy="430" r="120" fill="#22d3ee" fill-opacity="0.22"/><circle cx="430" cy="430" r="72" fill="#22d3ee" fill-opacity="0.30"/>
+    <circle cx="790" cy="390" r="210" fill="#f97316" fill-opacity="0.14"/><circle cx="790" cy="390" r="140" fill="#f97316" fill-opacity="0.22"/><circle cx="790" cy="390" r="86" fill="#f97316" fill-opacity="0.30"/>
+    <circle cx="1060" cy="510" r="230" fill="#f43f5e" fill-opacity="0.14"/><circle cx="1060" cy="510" r="156" fill="#f43f5e" fill-opacity="0.22"/><circle cx="1060" cy="510" r="96" fill="#f43f5e" fill-opacity="0.34"/>
+  </g>
+  <g>
+    <circle cx="430" cy="430" r="14" fill="#22d3ee"/><circle cx="790" cy="390" r="16" fill="#f97316"/><circle cx="1060" cy="510" r="18" fill="#f43f5e"/>
+  </g>
+  <rect x="980" y="50" width="350" height="170" rx="18" fill="#111827" stroke="#1f2937"/>
+  <text x="1010" y="92" fill="#cbd5e1" font-family="Segoe UI, Arial" font-size="22" font-weight="700">Risk Scale</text>
+  <text x="1010" y="126" fill="#22d3ee" font-family="Segoe UI, Arial" font-size="18">Low / Monitor</text>
+  <text x="1010" y="152" fill="#eab308" font-family="Segoe UI, Arial" font-size="18">High</text>
+  <text x="1010" y="178" fill="#f97316" font-family="Segoe UI, Arial" font-size="18">Severe</text>
+  <text x="1010" y="204" fill="#f43f5e" font-family="Segoe UI, Arial" font-size="18">Critical</text>
+</svg>

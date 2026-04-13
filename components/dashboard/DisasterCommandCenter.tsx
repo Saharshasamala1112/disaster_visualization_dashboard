@@ -20,6 +20,7 @@ const signalIcons = [Activity, Siren, ShieldCheck];
 const featureIcons = [ArrowUpRight, Waves, Zap];
 type DataFreshness = "live" | "stale" | "offline";
 type OpsPanel = "overview" | "map" | "signals" | "actions" | "incidents" | "features";
+type UserRole = "responder" | "analyst" | "public";
 
 const panelMotionProfiles: Record<
   OpsPanel,
@@ -144,11 +145,12 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const config = disasterConfigBySlug[slug];
-  const [activePanel, setActivePanel] = useState<OpsPanel>("overview");
+  const [activePanel, setActivePanel] = useState<OpsPanel>("map");
   const [pulseEnabled, setPulseEnabled] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
   const [controlRailCollapsed, setControlRailCollapsed] = useState(false);
   const [liveTransport, setLiveTransport] = useState<"polling" | "socket-connecting" | "socket-live">("polling");
+  const [userRole, setUserRole] = useState<UserRole>("responder");
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -198,13 +200,30 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     if (prefersReducedMotion) setPulseEnabled(false);
   }, []);
 
-  useEffect(() => {
-    const validPanels: OpsPanel[] = ["overview", "map", "signals", "actions", "incidents", "features"];
+  const panelButtons: { id: OpsPanel; label: string; hint: string; icon: React.ComponentType<{ className?: string }> }[] = useMemo(
+    () => [
+      { id: "overview", label: "Overview", hint: "Mission snapshot", icon: LayoutDashboard },
+      { id: "map", label: "Geo map", hint: "Live spatial layer", icon: Map },
+      { id: "signals", label: "Signals", hint: "Decision indicators", icon: Activity },
+      { id: "actions", label: "Action queue", hint: "Execution priorities", icon: ListChecks },
+      { id: "incidents", label: "Incident feed", hint: "Stories + sentiment", icon: Siren },
+      { id: "features", label: "Differentiators", hint: "What makes this unique", icon: Zap },
+    ],
+    []
+  );
 
+  const allowedPanelIds = useMemo(() => {
+    if (userRole === "public") {
+      return ["overview", "map", "incidents", "features"] as OpsPanel[];
+    }
+    return panelButtons.map((panel) => panel.id);
+  }, [panelButtons, userRole]);
+
+  useEffect(() => {
     const syncPanelFromUrl = () => {
       const params = new URLSearchParams(window.location.search);
       const queryPanel = params.get("panel");
-      if (queryPanel && validPanels.includes(queryPanel as OpsPanel)) {
+      if (queryPanel && allowedPanelIds.includes(queryPanel as OpsPanel)) {
         setActivePanel(queryPanel as OpsPanel);
       }
     };
@@ -215,7 +234,13 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     return () => {
       window.removeEventListener("popstate", syncPanelFromUrl);
     };
-  }, []);
+  }, [allowedPanelIds]);
+
+  useEffect(() => {
+    if (!allowedPanelIds.includes(activePanel)) {
+      setActivePanel("map");
+    }
+  }, [activePanel, allowedPanelIds]);
 
   useEffect(() => {
     const socketBase = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
@@ -271,6 +296,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   }, [queryClient, slug]);
 
   const handlePanelChange = (panel: OpsPanel) => {
+    if (!allowedPanelIds.includes(panel)) return;
     setActivePanel(panel);
     const next = new URLSearchParams(window.location.search);
     next.set("panel", panel);
@@ -315,15 +341,8 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
       },
     },
   };
-  const panelButtons: { id: OpsPanel; label: string; hint: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: "overview", label: "Overview", hint: "Mission snapshot", icon: LayoutDashboard },
-    { id: "map", label: "Geo map", hint: "Live spatial layer", icon: Map },
-    { id: "signals", label: "Signals", hint: "Decision indicators", icon: Activity },
-    { id: "actions", label: "Action queue", hint: "Execution priorities", icon: ListChecks },
-    { id: "incidents", label: "Incident feed", hint: "Stories + sentiment", icon: Siren },
-    { id: "features", label: "Differentiators", hint: "What makes this unique", icon: Zap },
-  ];
-  const activePanelMeta = panelButtons.find((panel) => panel.id === activePanel) ?? panelButtons[0];
+  const visiblePanelButtons = panelButtons.filter((panel) => allowedPanelIds.includes(panel.id));
+  const activePanelMeta = visiblePanelButtons.find((panel) => panel.id === activePanel) ?? visiblePanelButtons[0];
 
   const renderPanelContent = () => {
     if (activePanel === "map") {
@@ -549,6 +568,18 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                     ? "Socket connecting"
                     : "Polling mode"}
               </Badge>
+              <div className="inline-flex items-center gap-2 rounded-full border border-zinc-300/70 bg-white/80 px-3 py-1 dark:border-white/15 dark:bg-white/5">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Role</span>
+                <select
+                  value={userRole}
+                  onChange={(event) => setUserRole(event.target.value as UserRole)}
+                  className="bg-transparent text-xs font-semibold uppercase tracking-[0.08em] text-zinc-800 outline-none dark:text-zinc-200"
+                >
+                  <option value="responder">Responder</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="public">Public</option>
+                </select>
+              </div>
             </div>
             <div className="space-y-3">
               <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-zinc-900 lg:text-5xl dark:text-white">{config.pageTitle}</h2>
@@ -603,7 +634,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
         <aside className="rounded-[1.8rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(241,245,249,0.9))] p-4 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.92),rgba(9,9,11,0.9))]">
           <div className="mb-3 px-2 text-xs uppercase tracking-[0.22em] text-zinc-500">Control panels</div>
           <div className="space-y-2">
-            {panelButtons.map((panel) => {
+            {visiblePanelButtons.map((panel) => {
               const Icon = panel.icon;
               const active = activePanel === panel.id;
 
@@ -665,7 +696,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             {(focusMode || controlRailCollapsed) && (
               <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200/80 bg-white/70 p-2 dark:border-white/10 dark:bg-black/20">
                 <div className="flex w-max min-w-full gap-2">
-                  {panelButtons.map((panel) => {
+                  {visiblePanelButtons.map((panel) => {
                     const Icon = panel.icon;
                     const active = activePanel === panel.id;
 

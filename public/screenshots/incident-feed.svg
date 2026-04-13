@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect x="60" y="70" width="1160" height="580" rx="24" fill="#0f172a" stroke="#1f2937"/>
+  <text x="100" y="130" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700">Incident Feed Preview</text>
+  <text x="100" y="168" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="18">Live multimodal incident stories with confidence and sentiment</text>
+  <rect x="100" y="210" width="1080" height="110" rx="16" fill="#111827" stroke="#334155"/>
+  <text x="124" y="255" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600">Flood Alert Sector 7</text>
+  <text x="124" y="286" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="16">High water level escalation reported near eastern corridor.</text>
+  <text x="980" y="255" fill="#34d399" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Confidence 88%</text>
+  <rect x="100" y="340" width="1080" height="110" rx="16" fill="#111827" stroke="#334155"/>
+  <text x="124" y="385" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600">Wildfire Smoke Spread</text>
+  <text x="124" y="416" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="16">Air-quality alerts expanding toward urban fringe zones.</text>
+  <text x="976" y="385" fill="#f59e0b" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Warning</text>
+  <rect x="100" y="470" width="1080" height="110" rx="16" fill="#111827" stroke="#334155"/>
+  <text x="124" y="515" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600">Heatwave Health Surge</text>
+  <text x="124" y="546" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="16">Emergency visits trending above baseline in 5 districts.</text>
+  <text x="982" y="515" fill="#fb7185" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Critical</text>
+</svg>

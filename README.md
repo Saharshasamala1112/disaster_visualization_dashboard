@@ -21,6 +21,8 @@
 ![Pulsing Heatmap](public/screenshots/heatmap.svg)
 ![Offline Mode Indicator](public/screenshots/offline.svg)
 ![Disaster Tabs](public/screenshots/tabs.svg)
+![Incident Feed](public/screenshots/incident-feed.svg)
+![Focus Mode](public/screenshots/focus-mode.svg)
 
 ## Feature Highlights
 

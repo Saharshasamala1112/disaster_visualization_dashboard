@@ -165,6 +165,7 @@ export default function LiveMap({
       pointSet.forEach((point) => {
         const radiusMeters = (point.radiusKm ?? 50) * 1000;
         const color = heatColor(point.intensity);
+        const risk = riskLabel(point.intensity);
         const pulseDuration = pulseDurationMs(point.intensity);
         const pulseSize = Math.round(11 + point.intensity * 26); // scaled for professional appearance
 
@@ -192,7 +193,16 @@ export default function LiveMap({
             html: `<span class="risk-pulse ${pulseEnabled ? '' : 'risk-pulse-paused'}" style="--pulse-color:${color}; --pulse-duration:${pulseDuration}ms; --pulse-size:${pulseSize}px;"></span>`,
           }),
         })
-          .bindPopup(`<b>${point.label ?? 'Risk hotspot'}</b><br>Intensity ${(point.intensity * 100).toFixed(0)}%`)
+          .bindPopup(
+            `<div style="min-width:210px;line-height:1.45;">
+              <div style="font-weight:700;margin-bottom:2px;">${point.label ?? 'Risk hotspot'}</div>
+              <div style="font-size:12px;color:#475569;margin-bottom:8px;">${risk.description}</div>
+              <div><b>Tier:</b> ${risk.tier}</div>
+              <div><b>Intensity:</b> ${(point.intensity * 100).toFixed(0)}%</div>
+              <div><b>Estimated confidence:</b> ${Math.round(62 + point.intensity * 34)}%</div>
+              <div><b>Suggested action:</b> ${point.intensity >= 0.7 ? 'Dispatch field verification' : 'Continue active monitoring'}</div>
+            </div>`
+          )
           .addTo(layerGroup);
       });
 

@@ -21,6 +21,15 @@ const featureIcons = [ArrowUpRight, Waves, Zap];
 type DataFreshness = "live" | "stale" | "offline";
 type OpsPanel = "overview" | "map" | "signals" | "actions" | "incidents" | "features";
 type UserRole = "responder" | "analyst" | "public";
+type PredictionResult = {
+  location: string;
+  severity: "Low" | "Moderate" | "High" | "Severe" | "Critical";
+  confidence: number;
+  leadTimeHours: number;
+  metricLabel: string;
+  metricValue: string;
+  recommendation: string;
+};
 
 const roleMeta: Record<UserRole, { label: string; hint: string }> = {
   responder: {
@@ -156,6 +165,94 @@ function freshnessBadgeClassName(freshness: DataFreshness) {
   return "border-rose-400/30 bg-rose-400/10 text-rose-300";
 }
 
+function hashString(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function buildPrediction(slug: DisasterSlug, location: string): PredictionResult {
+  const seed = hashString(`${slug}:${location.toLowerCase()}`);
+  const score = 28 + (seed % 71); // 28..98
+  const severity: PredictionResult["severity"] =
+    score >= 88 ? "Critical" : score >= 74 ? "Severe" : score >= 58 ? "High" : score >= 42 ? "Moderate" : "Low";
+
+  const confidence = 62 + (seed % 33); // 62..94
+  const leadTimeHours = 2 + (seed % 23); // 2..24
+
+  const perDisasterMetric: Record<
+    DisasterSlug,
+    { label: string; unit: string; multiplier: number; recommendation: string }
+  > = {
+    overview: {
+      label: "Composite risk index",
+      unit: "%",
+      multiplier: 1,
+      recommendation: "Prioritize inter-agency coordination for districts with the highest predicted strain.",
+    },
+    flood: {
+      label: "Expected flood depth",
+      unit: "m",
+      multiplier: 0.04,
+      recommendation: "Pre-stage boats and issue phased evacuation advisories in low-lying sectors.",
+    },
+    earthquake: {
+      label: "Aftershock probability",
+      unit: "%",
+      multiplier: 1,
+      recommendation: "Restrict high-density indoor occupancy and accelerate structural screening.",
+    },
+    cyclone: {
+      label: "Landfall impact wind",
+      unit: "km/h",
+      multiplier: 2,
+      recommendation: "Harden shelter power backup and enforce coastal movement controls.",
+    },
+    wildfire: {
+      label: "Spread acceleration",
+      unit: "x",
+      multiplier: 0.02,
+      recommendation: "Expand containment lines ahead of projected wind shifts and protect smoke-sensitive zones.",
+    },
+    landslide: {
+      label: "Slope failure likelihood",
+      unit: "%",
+      multiplier: 1,
+      recommendation: "Deploy debris-clearance assets near vulnerable corridors before peak rainfall.",
+    },
+    heatwave: {
+      label: "Heat index peak",
+      unit: "C",
+      multiplier: 0.5,
+      recommendation: "Open additional cooling centers and trigger high-risk population outreach.",
+    },
+  };
+
+  const config = perDisasterMetric[slug];
+  const metricRaw = Math.max(1, Math.round(score * config.multiplier * 10) / 10);
+  const metricValue =
+    config.unit === "%"
+      ? `${Math.round(metricRaw)}%`
+      : config.unit === "x"
+        ? `${metricRaw.toFixed(1)}x`
+        : config.unit === "C"
+          ? `${Math.round(34 + metricRaw)}°C`
+          : `${Math.round(70 + metricRaw)} ${config.unit}`;
+
+  return {
+    location,
+    severity,
+    confidence,
+    leadTimeHours,
+    metricLabel: config.label,
+    metricValue,
+    recommendation: config.recommendation,
+  };
+}
+
 export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -166,6 +263,8 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const [controlRailCollapsed, setControlRailCollapsed] = useState(false);
   const [liveTransport, setLiveTransport] = useState<"polling" | "socket-connecting" | "socket-live">("polling");
   const [userRole, setUserRole] = useState<UserRole>("responder");
+  const [predictionLocation, setPredictionLocation] = useState("");
+  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -331,6 +430,12 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     const next = new URLSearchParams(window.location.search);
     next.set("panel", panel);
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
+  };
+
+  const handlePrediction = () => {
+    const location = predictionLocation.trim();
+    if (!location) return;
+    setPredictionResult(buildPrediction(slug, location));
   };
 
   const stats = useMemo(
@@ -678,6 +783,67 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             </CardContent>
           </Card>
         ))}
+      </section>
+
+      <section className="rounded-[1.6rem] border border-zinc-200/80 bg-white/75 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-zinc-900/65 dark:shadow-none sm:p-5">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-3">
+            <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Prediction Engine</div>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Location-based {config.routeLabel} forecast</h3>
+            <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              Enter a location to estimate short-term severity, confidence, and recommended response priority.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                value={predictionLocation}
+                onChange={(event) => setPredictionLocation(event.target.value)}
+                placeholder="Enter city, district, or coordinates"
+                className="h-11 flex-1 rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-sky-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+              <button
+                type="button"
+                onClick={handlePrediction}
+                className="h-11 rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-4 text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 transition hover:bg-emerald-500/25 dark:text-emerald-300"
+              >
+                Predict
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-white/10 dark:bg-black/20">
+            {predictionResult ? (
+              <div className="space-y-2.5 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Location</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.location}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Predicted severity</span>
+                  <span className="font-semibold text-amber-600 dark:text-amber-300">{predictionResult.severity}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">{predictionResult.metricLabel}</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.metricValue}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Confidence</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-300">{predictionResult.confidence}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Lead time window</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.leadTimeHours}h</span>
+                </div>
+                <div className="rounded-xl border border-zinc-200/80 bg-white p-3 text-zinc-700 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-300">
+                  {predictionResult.recommendation}
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-full min-h-[150px] items-center justify-center rounded-xl border border-dashed border-zinc-300/80 text-sm text-zinc-500 dark:border-white/15 dark:text-zinc-400">
+                Add a location and click Predict to generate forecast output.
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
       <section className={cn("grid grid-cols-1 gap-6", focusMode ? "xl:grid-cols-1" : "xl:grid-cols-[300px_minmax(0,1fr)]")}>

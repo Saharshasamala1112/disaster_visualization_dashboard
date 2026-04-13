@@ -297,7 +297,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 Pulse {pulseEnabled ? "On" : "Off"}
               </button>
             </div>
-            <div className="h-[560px]">
+            <div className="h-[360px] sm:h-[430px] md:h-[500px] lg:h-[560px]">
               <LiveMap
                 center={config.location}
                 marker={config.marker}
@@ -567,7 +567,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
               <span>{activePanelMeta.label}</span>
             </div>
           </div>
-          <div className="overflow-hidden rounded-[1.4rem] border border-white/10">
+          <div className="overflow-x-auto rounded-[1.4rem] border border-white/10">
             <DisasterTabs />
           </div>
           <AnimatePresence mode="wait" initial={false}>

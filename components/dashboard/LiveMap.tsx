@@ -63,6 +63,9 @@ export default function LiveMap({
     if (!mapRef.current) return;
 
     let cancelled = false;
+    const handleResize = () => {
+      mapInstance.current?.invalidateSize({ animate: false });
+    };
 
     const initMap = async () => {
       const L = await import('leaflet');
@@ -79,8 +82,15 @@ export default function LiveMap({
         mapInstance.current = L.map(mapRef.current, {
           center,
           zoom: 5.5,
-          zoomControl: true,
+          zoomControl: false,
+          dragging: true,
+          touchZoom: true,
+          doubleClickZoom: true,
+          boxZoom: false,
+          keyboard: false,
         });
+
+        L.control.zoom({ position: 'bottomright' }).addTo(mapInstance.current);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors',
@@ -89,12 +99,18 @@ export default function LiveMap({
       }
 
       overlays.current = L.layerGroup().addTo(mapInstance.current);
+
+      setTimeout(handleResize, 120);
     };
 
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
     void initMap();
 
     return () => {
       cancelled = true;
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       overlays.current?.clearLayers();
       mapInstance.current?.remove();
       overlays.current = null;
@@ -168,7 +184,7 @@ export default function LiveMap({
     <div className="relative h-full w-full overflow-hidden bg-zinc-950 shadow-2xl">
       <div ref={mapRef} className="absolute inset-0" />
 
-      <div className="absolute left-6 top-6 z-[1000] max-w-sm space-y-1 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-5 py-3.5 shadow-lg backdrop-blur-md">
+      <div className="pointer-events-none absolute left-3 top-3 z-[1000] max-w-[78%] space-y-1 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-4 py-3 shadow-lg backdrop-blur-md sm:left-6 sm:top-6 sm:max-w-sm sm:px-5 sm:py-3.5">
         <div className="flex items-center gap-2">
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400">
             <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-emerald-400 opacity-75" />
@@ -178,7 +194,7 @@ export default function LiveMap({
         <div className="text-xs text-zinc-400 font-medium">{subTitle}</div>
       </div>
 
-      <div className="absolute bottom-5 right-5 z-[1000] w-56 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-3 py-2.5 shadow-lg backdrop-blur-md">
+      <div className="pointer-events-none absolute bottom-4 right-3 z-[1000] w-44 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-3 py-2.5 shadow-lg backdrop-blur-md sm:bottom-5 sm:right-5 sm:w-56">
         <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">Risk Scale</div>
         <div className="space-y-1.5">
           {([
@@ -188,7 +204,7 @@ export default function LiveMap({
             { color: '#ea580c', label: 'Severe', pct: '70–84%', desc: 'Activate' },
             { color: '#f43f5e', label: 'Critical', pct: '85–100%', desc: 'Act now' },
           ] as const).map(({ color, label, pct, desc }) => (
-            <div key={label} className="group cursor-pointer rounded-md border border-white/5 bg-white/3 p-1.5 transition-all hover:border-white/20 hover:bg-white/8">
+            <div key={label} className="rounded-md border border-white/5 bg-white/3 p-1.5">
               <div className="flex items-center gap-2">
                 <div className="relative flex h-5 w-10 overflow-hidden rounded border border-white/10 shadow-inner flex-shrink-0">
                   <div className="flex-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}22)` }} />
@@ -265,6 +281,11 @@ export default function LiveMap({
               0 0 0 0 color-mix(in srgb, var(--pulse-color) 0%, transparent 100%),
               inset 0 1px 3px rgba(255, 255, 255, 0.15);
           }
+        }
+
+        .leaflet-container {
+          touch-action: pan-x pan-y;
+          -webkit-tap-highlight-color: transparent;
         }
       `}</style>
     </div>

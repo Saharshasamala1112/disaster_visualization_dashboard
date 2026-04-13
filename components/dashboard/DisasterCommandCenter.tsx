@@ -23,9 +23,11 @@ type OpsPanel = "overview" | "map" | "signals" | "actions" | "incidents" | "feat
 type UserRole = "responder" | "analyst" | "public";
 type PredictionResult = {
   location: string;
+  source: "coordinates" | "city-catalog";
   severity: "Low" | "Moderate" | "High" | "Severe" | "Critical";
   confidence: number;
   leadTimeHours: number;
+  nearestHotspotKm: number;
   metricLabel: string;
   metricValue: string;
   recommendation: string;
@@ -165,91 +167,169 @@ function freshnessBadgeClassName(freshness: DataFreshness) {
   return "border-rose-400/30 bg-rose-400/10 text-rose-300";
 }
 
-function hashString(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
+type ResolvedLocation = {
+  label: string;
+  lat: number;
+  lng: number;
+  source: "coordinates" | "city-catalog";
+};
+
+const cityCatalog: Record<string, { lat: number; lng: number }> = {
+  mumbai: { lat: 19.076, lng: 72.8777 },
+  delhi: { lat: 28.6139, lng: 77.209 },
+  kolkata: { lat: 22.5726, lng: 88.3639 },
+  chennai: { lat: 13.0827, lng: 80.2707 },
+  hyderabad: { lat: 17.385, lng: 78.4867 },
+  pune: { lat: 18.5204, lng: 73.8567 },
+  bangalore: { lat: 12.9716, lng: 77.5946 },
+  bengaluru: { lat: 12.9716, lng: 77.5946 },
+  lucknow: { lat: 26.8467, lng: 80.9462 },
+  patna: { lat: 25.5941, lng: 85.1376 },
+  guwahati: { lat: 26.1445, lng: 91.7362 },
+  dehradun: { lat: 30.3165, lng: 78.0322 },
+  gangtok: { lat: 27.3389, lng: 88.6065 },
+  srinagar: { lat: 34.0837, lng: 74.7973 },
+  bhopal: { lat: 23.2599, lng: 77.4126 },
+  indore: { lat: 22.7196, lng: 75.8577 },
+  nagpur: { lat: 21.1458, lng: 79.0882 },
+  shimla: { lat: 31.1048, lng: 77.1734 },
+  jaipur: { lat: 26.9124, lng: 75.7873 },
+  ahmedabad: { lat: 23.0225, lng: 72.5714 },
+  visakhapatnam: { lat: 17.6868, lng: 83.2185 },
+  puri: { lat: 19.8135, lng: 85.8312 },
+};
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
-function buildPrediction(slug: DisasterSlug, location: string): PredictionResult {
-  const seed = hashString(`${slug}:${location.toLowerCase()}`);
-  const score = 28 + (seed % 71); // 28..98
+function normalizeText(input: string) {
+  return input.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function haversineDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return 6371 * c;
+}
+
+function resolveLocation(location: string): ResolvedLocation | null {
+  const coordsMatch = location.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if (coordsMatch) {
+    const lat = Number(coordsMatch[1]);
+    const lng = Number(coordsMatch[2]);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return {
+        label: `${lat.toFixed(3)}, ${lng.toFixed(3)}`,
+        lat,
+        lng,
+        source: "coordinates",
+      };
+    }
+  }
+
+  const normalizedInput = normalizeText(location);
+  if (!normalizedInput || normalizedInput.length < 3) return null;
+
+  const exact = Object.entries(cityCatalog).find(([city]) => normalizeText(city) === normalizedInput);
+  if (exact) {
+    return {
+      label: exact[0][0].toUpperCase() + exact[0].slice(1),
+      lat: exact[1].lat,
+      lng: exact[1].lng,
+      source: "city-catalog",
+    };
+  }
+
+  const partial = Object.entries(cityCatalog).find(([city]) => normalizeText(city).includes(normalizedInput));
+  if (partial) {
+    return {
+      label: partial[0][0].toUpperCase() + partial[0].slice(1),
+      lat: partial[1].lat,
+      lng: partial[1].lng,
+      source: "city-catalog",
+    };
+  }
+
+  return null;
+}
+
+function buildPrediction(slug: DisasterSlug, location: string): PredictionResult | null {
+  const resolved = resolveLocation(location);
+  if (!resolved) return null;
+
+  const hotspots = riskHeatPointsBySlug[slug].length > 0
+    ? riskHeatPointsBySlug[slug]
+    : [{ lat: 22.6, lng: 79.0, intensity: 0.5 }];
+
+  const hotspotFactors = hotspots.map((hotspot) => {
+    const km = haversineDistanceKm(resolved.lat, resolved.lng, hotspot.lat, hotspot.lng);
+    const influence = hotspot.intensity * Math.exp(-km / 220);
+    return { km, influence };
+  });
+
+  const nearestHotspotKm = Math.round(Math.min(...hotspotFactors.map((item) => item.km)));
+  const maxInfluence = Math.max(...hotspotFactors.map((item) => item.influence));
+  const distanceFactor = clamp(1 - nearestHotspotKm / 800, 0, 1);
+  const riskScore = clamp(Math.round(maxInfluence * 72 + distanceFactor * 28), 8, 98);
+
   const severity: PredictionResult["severity"] =
-    score >= 88 ? "Critical" : score >= 74 ? "Severe" : score >= 58 ? "High" : score >= 42 ? "Moderate" : "Low";
+    riskScore >= 86 ? "Critical" : riskScore >= 70 ? "Severe" : riskScore >= 54 ? "High" : riskScore >= 36 ? "Moderate" : "Low";
 
-  const confidence = 62 + (seed % 33); // 62..94
-  const leadTimeHours = 2 + (seed % 23); // 2..24
+  const confidenceBase = resolved.source === "coordinates" ? 88 : 80;
+  const confidence = clamp(
+    Math.round(confidenceBase - Math.min(nearestHotspotKm / 35, 18) + maxInfluence * 10),
+    55,
+    96
+  );
 
-  const perDisasterMetric: Record<
-    DisasterSlug,
-    { label: string; unit: string; multiplier: number; recommendation: string }
-  > = {
-    overview: {
-      label: "Composite risk index",
-      unit: "%",
-      multiplier: 1,
-      recommendation: "Prioritize inter-agency coordination for districts with the highest predicted strain.",
-    },
-    flood: {
-      label: "Expected flood depth",
-      unit: "m",
-      multiplier: 0.04,
-      recommendation: "Pre-stage boats and issue phased evacuation advisories in low-lying sectors.",
-    },
-    earthquake: {
-      label: "Aftershock probability",
-      unit: "%",
-      multiplier: 1,
-      recommendation: "Restrict high-density indoor occupancy and accelerate structural screening.",
-    },
-    cyclone: {
-      label: "Landfall impact wind",
-      unit: "km/h",
-      multiplier: 2,
-      recommendation: "Harden shelter power backup and enforce coastal movement controls.",
-    },
-    wildfire: {
-      label: "Spread acceleration",
-      unit: "x",
-      multiplier: 0.02,
-      recommendation: "Expand containment lines ahead of projected wind shifts and protect smoke-sensitive zones.",
-    },
-    landslide: {
-      label: "Slope failure likelihood",
-      unit: "%",
-      multiplier: 1,
-      recommendation: "Deploy debris-clearance assets near vulnerable corridors before peak rainfall.",
-    },
-    heatwave: {
-      label: "Heat index peak",
-      unit: "C",
-      multiplier: 0.5,
-      recommendation: "Open additional cooling centers and trigger high-risk population outreach.",
-    },
+  const leadTimeHours = clamp(Math.round(2 + (100 - riskScore) / 6 + Math.min(nearestHotspotKm / 120, 12)), 1, 24);
+
+  const metricLabelBySlug: Record<DisasterSlug, string> = {
+    overview: "Composite risk index",
+    flood: "Expected flood depth",
+    earthquake: "Aftershock probability",
+    cyclone: "Landfall impact wind",
+    wildfire: "Spread acceleration",
+    landslide: "Slope failure likelihood",
+    heatwave: "Heat index peak",
   };
 
-  const config = perDisasterMetric[slug];
-  const metricRaw = Math.max(1, Math.round(score * config.multiplier * 10) / 10);
-  const metricValue =
-    config.unit === "%"
-      ? `${Math.round(metricRaw)}%`
-      : config.unit === "x"
-        ? `${metricRaw.toFixed(1)}x`
-        : config.unit === "C"
-          ? `${Math.round(34 + metricRaw)}°C`
-          : `${Math.round(70 + metricRaw)} ${config.unit}`;
+  const metricValueBySlug: Record<DisasterSlug, string> = {
+    overview: `${riskScore}%`,
+    flood: `${(0.4 + riskScore * 0.045).toFixed(1)} m`,
+    earthquake: `${Math.round(riskScore)}%`,
+    cyclone: `${Math.round(80 + riskScore * 1.3)} km/h`,
+    wildfire: `${(1.1 + riskScore * 0.018).toFixed(1)}x`,
+    landslide: `${Math.round(riskScore)}%`,
+    heatwave: `${Math.round(34 + riskScore * 0.17)}°C`,
+  };
+
+  const recommendationBySlug: Record<DisasterSlug, string> = {
+    overview: "Activate cross-agency watch and prioritize high-strain districts.",
+    flood: "Prepare staged evacuation and pre-position water rescue assets.",
+    earthquake: "Increase structural triage and aftershock safety enforcement.",
+    cyclone: "Harden shelters and issue coastal movement advisories.",
+    wildfire: "Advance containment lines and protect smoke-sensitive communities.",
+    landslide: "Deploy debris-clearance units near unstable corridors.",
+    heatwave: "Open cooling centers and trigger hydration outreach.",
+  };
 
   return {
-    location,
+    location: resolved.label,
+    source: resolved.source,
     severity,
     confidence,
     leadTimeHours,
-    metricLabel: config.label,
-    metricValue,
-    recommendation: config.recommendation,
+    nearestHotspotKm,
+    metricLabel: metricLabelBySlug[slug],
+    metricValue: metricValueBySlug[slug],
+    recommendation: recommendationBySlug[slug],
   };
 }
 
@@ -265,6 +345,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const [userRole, setUserRole] = useState<UserRole>("responder");
   const [predictionLocation, setPredictionLocation] = useState("");
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -434,8 +515,21 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
 
   const handlePrediction = () => {
     const location = predictionLocation.trim();
-    if (!location) return;
-    setPredictionResult(buildPrediction(slug, location));
+    if (!location) {
+      setPredictionError("Enter a location first (example: Mumbai or 19.076,72.8777).");
+      setPredictionResult(null);
+      return;
+    }
+
+    const nextPrediction = buildPrediction(slug, location);
+    if (!nextPrediction) {
+      setPredictionError("Location not recognized. Try a known city name or coordinates like 19.076,72.8777.");
+      setPredictionResult(null);
+      return;
+    }
+
+    setPredictionError(null);
+    setPredictionResult(nextPrediction);
   };
 
   const stats = useMemo(
@@ -796,7 +890,12 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 value={predictionLocation}
-                onChange={(event) => setPredictionLocation(event.target.value)}
+                onChange={(event) => {
+                  setPredictionLocation(event.target.value);
+                  if (predictionError) {
+                    setPredictionError(null);
+                  }
+                }}
                 placeholder="Enter city, district, or coordinates"
                 className="h-11 flex-1 rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-sky-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-100"
               />
@@ -808,6 +907,14 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 Predict
               </button>
             </div>
+            {predictionError && (
+              <div className="rounded-lg border border-rose-300/70 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300">
+                {predictionError}
+              </div>
+            )}
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              Supported quick examples: Mumbai, Delhi, Chennai, Dehradun, Guwahati, or coordinates like 28.6139,77.2090
+            </div>
           </div>
 
           <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-white/10 dark:bg-black/20">
@@ -816,6 +923,12 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Location</span>
                   <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.location}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Input source</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">
+                    {predictionResult.source === "coordinates" ? "Coordinates" : "City catalog"}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Predicted severity</span>
@@ -832,6 +945,10 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Lead time window</span>
                   <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.leadTimeHours}h</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Nearest hotspot</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{predictionResult.nearestHotspotKm} km</span>
                 </div>
                 <div className="rounded-xl border border-zinc-200/80 bg-white p-3 text-zinc-700 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-300">
                   {predictionResult.recommendation}

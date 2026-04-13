@@ -160,7 +160,7 @@ type OpenWeatherResponse = {
   }>;
 };
 
-function parseFirmsConfidenceFromCsv(csv: string): number | null {
+export function parseFirmsConfidenceFromCsv(csv: string): number | null {
   const lines = csv.trim().split(/\r?\n/);
   if (lines.length < 2) return null;
 

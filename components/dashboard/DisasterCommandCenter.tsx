@@ -524,7 +524,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="rounded-[1.8rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(241,245,249,0.9))] p-4 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.92),rgba(9,9,11,0.9))]">
           <div className="mb-3 px-2 text-xs uppercase tracking-[0.22em] text-zinc-500">Control panels</div>
           <div className="space-y-2">
@@ -559,28 +559,32 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
           </div>
         </aside>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white/70 px-4 py-3 backdrop-blur-sm dark:border-white/10 dark:bg-zinc-900/70">
-            <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Current panel</div>
-            <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
-              <activePanelMeta.icon className="size-3" />
-              <span>{activePanelMeta.label}</span>
+        <div className="min-w-0 space-y-4">
+          <div className="rounded-[1.4rem] border border-zinc-200/80 bg-white/75 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-zinc-900/70">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3 dark:border-white/8 dark:bg-black/20">
+              <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Current panel</div>
+              <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                <activePanelMeta.icon className="size-3" />
+                <span>{activePanelMeta.label}</span>
+              </div>
+            </div>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-200/70 dark:border-white/10">
+              <DisasterTabs />
             </div>
           </div>
-          <div className="overflow-x-auto rounded-[1.4rem] border border-white/10">
-            <DisasterTabs />
+          <div className="min-w-0 rounded-[1.4rem] border border-zinc-200/80 bg-white/65 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.07)] dark:border-white/10 dark:bg-zinc-900/35 dark:shadow-none">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activePanel}
+                initial={motionProfile.initial}
+                animate={motionProfile.animate}
+                exit={motionProfile.exit}
+                transition={motionProfile.transition}
+              >
+                {renderPanelContent()}
+              </motion.div>
+            </AnimatePresence>
           </div>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={activePanel}
-              initial={motionProfile.initial}
-              animate={motionProfile.animate}
-              exit={motionProfile.exit}
-              transition={motionProfile.transition}
-            >
-              {renderPanelContent()}
-            </motion.div>
-          </AnimatePresence>
         </div>
       </section>
     </div>

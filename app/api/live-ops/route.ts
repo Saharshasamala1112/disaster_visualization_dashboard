@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { buildLiveOpsSnapshot } from "@/lib/realtime/mock-pipeline";
 import { type DisasterSlug } from "@/lib/disaster-data";
 
-const allowedSlugs: DisasterSlug[] = ["overview", "flood", "earthquake", "cyclone", "wildfire"];
+const allowedSlugs: DisasterSlug[] = ["overview", "flood", "earthquake", "cyclone", "wildfire", "landslide", "heatwave"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

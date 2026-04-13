@@ -112,6 +112,16 @@ const riskHeatPointsBySlug: Record<DisasterSlug, HeatPoint[]> = {
     { lat: 21.15, lng: 79.09, intensity: 0.64, radiusKm: 44, label: "Smoke health plume" },
     { lat: 23.26, lng: 77.41, intensity: 0.49, radiusKm: 38, label: "Water access instability" },
   ],
+  landslide: [
+    { lat: 30.32, lng: 78.03, intensity: 0.86, radiusKm: 45, label: "Slope-failure acceleration" },
+    { lat: 27.1, lng: 88.6, intensity: 0.69, radiusKm: 39, label: "Hill-road blockage corridor" },
+    { lat: 31.1, lng: 77.2, intensity: 0.57, radiusKm: 34, label: "Debris choke-point risk" },
+  ],
+  heatwave: [
+    { lat: 28.61, lng: 77.21, intensity: 0.91, radiusKm: 63, label: "Urban heat island core" },
+    { lat: 26.85, lng: 80.95, intensity: 0.74, radiusKm: 55, label: "Cooling gap cluster" },
+    { lat: 23.26, lng: 77.41, intensity: 0.6, radiusKm: 47, label: "Grid stress and heat exposure" },
+  ],
 };
 
 const uniqueRiskMapPoints = [

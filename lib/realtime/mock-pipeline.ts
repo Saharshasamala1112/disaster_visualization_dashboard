@@ -26,6 +26,8 @@ const locationBySlug: Record<DisasterSlug, string[]> = {
   earthquake: ["Dehradun", "Gangtok", "Imphal", "Guwahati", "Srinagar"],
   cyclone: ["Kakinada", "Machilipatnam", "Puri", "Paradip", "Srikakulam"],
   wildfire: ["Indore", "Nagpur", "Bhopal", "Raipur", "Udaipur"],
+  landslide: ["Dehradun", "Shimla", "Gangtok", "Aizawl", "Darjeeling"],
+  heatwave: ["Delhi", "Lucknow", "Jaipur", "Nagpur", "Ahmedabad"],
 };
 
 function jitter(base: number, spread: number) {
@@ -70,6 +72,24 @@ function computeDynamicStatValues(slug: DisasterSlug): Record<string, string> {
       "Smoke exposure": `${(jitter(210, 20) / 100).toFixed(1)}M`,
       "Ground crews": String(jitter(54, 6)),
       "Containment outlook": pick(["UNSTABLE", "TENSE", "VOLATILE"]),
+    };
+  }
+
+  if (slug === "landslide") {
+    return {
+      "Critical slope sectors": String(jitter(11, 2)),
+      "Villages at isolation risk": String(jitter(126, 14)),
+      "Debris-clearance teams": String(jitter(39, 5)),
+      "Road viability": pick(["TENSE", "FRAGILE", "UNSTABLE"]),
+    };
+  }
+
+  if (slug === "heatwave") {
+    return {
+      "Heat index peak": `${jitter(47, 2)}°C`,
+      "At-risk population": `${(jitter(280, 25) / 100).toFixed(1)}M`,
+      "Cooling centers active": String(jitter(186, 15)),
+      "Grid stress": pick(["HIGH", "SEVERE", "ELEVATED"]),
     };
   }
 

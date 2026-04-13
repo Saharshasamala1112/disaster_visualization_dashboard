@@ -1,4 +1,4 @@
-export type DisasterSlug = "overview" | "flood" | "earthquake" | "cyclone" | "wildfire";
+export type DisasterSlug = "overview" | "flood" | "earthquake" | "cyclone" | "wildfire" | "landslide" | "heatwave";
 
 export type DisasterRoute = {
   id: DisasterSlug;
@@ -59,6 +59,8 @@ export const disasterRoutes: DisasterRoute[] = [
   { id: "earthquake", label: "Earthquake", icon: "🫨", path: "/earthquake" },
   { id: "cyclone", label: "Cyclone", icon: "🌀", path: "/cyclone" },
   { id: "wildfire", label: "Wildfire", icon: "🔥", path: "/wildfire" },
+  { id: "landslide", label: "Landslide", icon: "⛰️", path: "/landslide" },
+  { id: "heatwave", label: "Heatwave", icon: "🌡️", path: "/heatwave" },
 ];
 
 export const disasterConfigBySlug: Record<DisasterSlug, DisasterConfig> = {
@@ -260,6 +262,86 @@ export const disasterConfigBySlug: Record<DisasterSlug, DisasterConfig> = {
       { title: "Smoke-first public risk", description: "Captures the health and mobility impact of smoke before flames reach population centers." },
       { title: "Crew fatigue visibility", description: "Surfaces human endurance as a planning constraint, reducing preventable responder exposure." },
       { title: "Sustainable containment planning", description: "Balances fireline ambition against refill access, wind shift timing, and crew rotation needs." },
+    ],
+  },
+  landslide: {
+    id: "landslide",
+    routeLabel: "Landslide",
+    pageTitle: "Landslide slope-failure and corridor protection grid",
+    subtitle:
+      "Designed for hill-region operations where intense rainfall, slope instability, blocked roads, and village isolation can escalate rapidly without early intervention.",
+    mapTitle: "Slope-failure probability and rescue access",
+    mapHint: "Rainfall loading, terrain fragility, road choke points, and village access overlays",
+    liveLabel: "Slope stability operations mesh",
+    liveSubLabel: "Failure probability, corridor blockage, and rescue access tracked in one layer",
+    location: [30.5, 78.7],
+    marker: [30.3165, 78.0322],
+    markerPopup: "<b>Slope-failure watch</b><br>High-risk cut-slope corridors under heavy rainfall",
+    stats: [
+      { label: "Critical slope sectors", value: "11", detail: "4 sectors nearing failure threshold", icon: "⛰️", titleClassName: "text-amber-300", detailClassName: "text-amber-300" },
+      { label: "Villages at isolation risk", value: "126", detail: "Road blockage can sever access within hours", icon: "🏘️", titleClassName: "text-sky-400", detailClassName: "text-rose-300" },
+      { label: "Debris-clearance teams", value: "39", detail: "8 teams pending machinery support", icon: "🚜", titleClassName: "text-emerald-400", detailClassName: "text-emerald-400" },
+      { label: "Road viability", value: "TENSE", detail: "Mountain corridors under stress", icon: "🛣️", titleClassName: "text-violet-400", detailClassName: "text-zinc-400", valueClassName: "text-orange-400" },
+    ],
+    signals: [
+      { title: "Slope saturation", value: "86%", detail: "Rainfall infiltration remains above safe slope-load baseline" },
+      { title: "Corridor blockage risk", value: "14 routes", detail: "Road segments likely to be blocked by debris in the next 3 hours" },
+      { title: "Relief reachability", value: "72%", detail: "Current access reliability for high-altitude settlements" },
+    ],
+    actions: [
+      { title: "Pre-stage excavators near priority ridge corridors", owner: "Mountain response cell", eta: "18 min" },
+      { title: "Issue village-level pre-evacuation advisory", owner: "District warning unit", eta: "10 min" },
+      { title: "Activate alternate relief route to upper valley blocks", owner: "Logistics command", eta: "26 min" },
+    ],
+    blindspots: [
+      "Most landslide tools show terrain risk without showing whether blocked roads will isolate entire communities.",
+      "This command view links slope instability with corridor survivability so teams can prioritize where delays become life-threatening.",
+      "Debris-clearance capacity is tracked in the same view, avoiding plans that assume machinery can arrive where roads are already compromised.",
+    ],
+    features: [
+      { title: "Isolation-first triage", description: "Prioritizes settlements most likely to be cut off rather than only areas with highest slope-failure probability." },
+      { title: "Route resilience scoring", description: "Scores mountain corridors by blockage probability and recovery time under current rain load." },
+      { title: "Machinery-aware dispatch", description: "Aligns clearance assignments to excavator reach, fuel support, and expected debris volume." },
+    ],
+  },
+  heatwave: {
+    id: "heatwave",
+    routeLabel: "Heatwave",
+    pageTitle: "Heatwave health-risk and cooling response command",
+    subtitle:
+      "Built for extreme-heat operations where public health exposure, power-grid stress, water demand, and cooling-center readiness must be coordinated in real time.",
+    mapTitle: "Heat stress exposure and cooling coverage",
+    mapHint: "Temperature anomalies, humidity stress, vulnerable populations, and cooling shelter capacity",
+    liveLabel: "Extreme-heat resilience mesh",
+    liveSubLabel: "Heat index, health burden, and cooling access monitored continuously",
+    location: [23.2, 77.4],
+    marker: [28.6139, 77.209],
+    markerPopup: "<b>Severe heat pocket</b><br>Urban heat island stress with limited cooling coverage",
+    stats: [
+      { label: "Heat index peak", value: "47°C", detail: "Severe physiological stress threshold exceeded", icon: "🌡️", titleClassName: "text-rose-400", detailClassName: "text-rose-300" },
+      { label: "At-risk population", value: "2.8M", detail: "High exposure among elderly and outdoor workers", icon: "👥", titleClassName: "text-amber-300", detailClassName: "text-amber-300" },
+      { label: "Cooling centers active", value: "186", detail: "24 require generator backup", icon: "🏫", titleClassName: "text-emerald-400", detailClassName: "text-emerald-400" },
+      { label: "Grid stress", value: "HIGH", detail: "Peak demand near failure margin", icon: "⚡", titleClassName: "text-violet-400", detailClassName: "text-zinc-400", valueClassName: "text-orange-400" },
+    ],
+    signals: [
+      { title: "Heat-health admissions", value: "+34%", detail: "Emergency visits above weekday baseline" },
+      { title: "Cooling coverage gap", value: "22 zones", detail: "Neighborhoods beyond safe travel distance to cooling points" },
+      { title: "Water demand pressure", value: "1.5x", detail: "Demand surge straining distribution in high-density wards" },
+    ],
+    actions: [
+      { title: "Extend cooling center hours in priority wards", owner: "Public health desk", eta: "12 min" },
+      { title: "Push heat-alert advisories in regional languages", owner: "Warning and outreach", eta: "7 min" },
+      { title: "Pre-stage emergency water tankers for high-risk zones", owner: "Utility coordination", eta: "21 min" },
+    ],
+    blindspots: [
+      "Heatwave dashboards often track temperature but miss travel-time access to cooling and hydration support.",
+      "This view links health burden with power and water reliability so interventions target where mortality risk rises first.",
+      "Cooling-center counts are adjusted for real operational availability, not just nominal capacity.",
+    ],
+    features: [
+      { title: "Heat equity prioritization", description: "Highlights communities with high exposure and low cooling access for targeted intervention." },
+      { title: "Grid-health coupling", description: "Connects power stress to cooling-center uptime and hospital surge risk." },
+      { title: "Hydration logistics planner", description: "Forecasts tanker and refill demand under sustained extreme heat conditions." },
     ],
   },
 };

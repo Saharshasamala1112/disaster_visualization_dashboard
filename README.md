@@ -212,6 +212,49 @@ npm run dev
 # Open http://localhost:3000 in your browser
 ```
 
+### Environment Variables
+
+This project already includes [`.env.example`](.env.example). Create your local environment file first:
+
+```bash
+cp .env.example .env.local
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Then open `.env.local` and add keys for live cyclone and wildfire feeds:
+
+- `OPENWEATHER_API_KEY` (Cyclone wind/weather)
+- `FIRMS_API_KEY` (NASA wildfire confidence)
+
+#### How To Get OPENWEATHER_API_KEY
+
+1. Create a free account at https://home.openweathermap.org/users/sign_up
+2. Open API Keys page: https://home.openweathermap.org/api_keys
+3. Copy your key and paste into `.env.local`:
+
+```env
+OPENWEATHER_API_KEY=your_key_here
+```
+
+Note: new OpenWeather keys can take a few minutes to activate.
+
+#### How To Get FIRMS_API_KEY
+
+1. Create/sign in account at https://urs.earthdata.nasa.gov/
+2. Go to FIRMS API portal: https://firms.modaps.eosdis.nasa.gov/api/
+3. Generate/copy your MAP_KEY token and paste into `.env.local`:
+
+```env
+FIRMS_API_KEY=your_key_here
+```
+
+If you skip these keys, the dashboard still works using resilient fallback data.
+
 ### Production Build
 
 ```bash

@@ -160,6 +160,12 @@ type OpenWeatherResponse = {
   }>;
 };
 
+type OpenMeteoFloodResponse = {
+  daily?: {
+    river_discharge?: number[];
+  };
+};
+
 export function parseFirmsConfidenceFromCsv(csv: string): number | null {
   const lines = csv.trim().split(/\r?\n/);
   if (lines.length < 2) return null;
@@ -268,6 +274,25 @@ export async function ingestWeatherSignal(slug: DisasterSlug) {
 }
 
 export async function ingestGeoSensorSignal(slug: DisasterSlug) {
+  if (slug === "flood") {
+    try {
+      // Open-Meteo Flood API — free, no key required. River discharge for Mumbai coast.
+      const floodData = await fetchJsonWithTimeout<OpenMeteoFloodResponse>(
+        "https://flood-api.open-meteo.com/v1/flood?latitude=19.07&longitude=72.88&daily=river_discharge&forecast_days=1",
+        3500
+      );
+      const discharge = floodData.daily?.river_discharge?.[0];
+      if (typeof discharge === "number") {
+        return {
+          provider: "open-meteo-flood-live",
+          value: `${Math.round(discharge)} m³/s`,
+        };
+      }
+    } catch {
+      // Continue to fallback.
+    }
+  }
+
   if (slug === "earthquake") {
     try {
       const usgs = await fetchJsonWithTimeout<UsgsResponse>(

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { Activity, ArrowUpRight, LayoutDashboard, ListChecks, Map, ShieldCheck, Siren, Waves, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -13,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 import { DisasterTabs } from "./DisasterTabs";
 import { IncidentFeed } from "./IncidentFeed";
-import LiveMap, { type HeatPoint } from "./LiveMap";
+import LiveMap, { type HeatPoint } from "./LiveMapDynamic";
 
 const signalIcons = [Activity, Siren, ShieldCheck];
 const featureIcons = [ArrowUpRight, Waves, Zap];
@@ -132,17 +133,55 @@ function freshnessBadgeClassName(freshness: DataFreshness) {
 export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const pathname = usePathname();
   const config = disasterConfigBySlug[slug];
-  const [live, setLive] = useState<LiveOpsSnapshot | null>(null);
-  const [refreshPulse, setRefreshPulse] = useState(0);
-  const [freshness, setFreshness] = useState<DataFreshness>("offline");
   const [activePanel, setActivePanel] = useState<OpsPanel>("overview");
   const [pulseEnabled, setPulseEnabled] = useState(true);
 
+  const cacheKey = `live-ops-cache:${slug}`;
+
+  const readCache = (): { snapshot?: LiveOpsSnapshot } | undefined => {
+    if (typeof window === "undefined") return undefined;
+    try {
+      const cached = window.localStorage.getItem(cacheKey);
+      if (!cached) return undefined;
+      return JSON.parse(cached) as { snapshot?: LiveOpsSnapshot };
+    } catch {
+      return undefined;
+    }
+  };
+
+  const { data, isFetching, isError, dataUpdatedAt } = useQuery({
+    queryKey: ["live-ops", slug],
+    queryFn: async () => {
+      const response = await fetch(`/api/live-ops?slug=${slug}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Live ops fetch failed: ${response.status}`);
+      const json = (await response.json()) as { snapshot?: LiveOpsSnapshot };
+      if (json.snapshot && typeof window !== "undefined") {
+        window.localStorage.setItem(cacheKey, JSON.stringify({ snapshot: json.snapshot, cachedAt: Date.now() }));
+      }
+      return json;
+    },
+    initialData: readCache,
+    initialDataUpdatedAt: 0,
+    refetchInterval: 6_000,
+    staleTime: 5_000,
+    gcTime: 30_000,
+    retry: 1,
+  });
+
+  const live = data?.snapshot ?? null;
+  const freshness: DataFreshness = isError
+    ? live
+      ? "stale"
+      : "offline"
+    : isFetching && !live
+      ? "offline"
+      : live
+        ? "live"
+        : "offline";
+
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      setPulseEnabled(false);
-    }
+    if (prefersReducedMotion) setPulseEnabled(false);
   }, []);
 
   useEffect(() => {
@@ -170,65 +209,6 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     next.set("panel", panel);
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
   };
-
-  useEffect(() => {
-    let cancelled = false;
-    const cacheKey = `live-ops-cache:${slug}`;
-
-    const readCache = () => {
-      try {
-        const cached = window.localStorage.getItem(cacheKey);
-        if (!cached) {
-          return null;
-        }
-        const parsed = JSON.parse(cached) as { snapshot?: LiveOpsSnapshot };
-        return parsed.snapshot ?? null;
-      } catch {
-        return null;
-      }
-    };
-
-    const cachedSnapshot = readCache();
-    if (cachedSnapshot && !cancelled) {
-      setLive(cachedSnapshot);
-      setFreshness("stale");
-    }
-
-    const load = async () => {
-      try {
-        const response = await fetch(`/api/live-ops?slug=${slug}`, { cache: "no-store" });
-        if (!response.ok || cancelled) {
-          return;
-        }
-
-        const data = (await response.json()) as { snapshot?: LiveOpsSnapshot };
-        if (data.snapshot && !cancelled) {
-          setLive(data.snapshot);
-          setFreshness("live");
-          setRefreshPulse((value) => value + 1);
-          window.localStorage.setItem(cacheKey, JSON.stringify({ snapshot: data.snapshot, cachedAt: Date.now() }));
-        }
-      } catch {
-        const fallback = readCache();
-        if (fallback && !cancelled) {
-          setLive(fallback);
-          setFreshness("stale");
-        } else if (!cancelled) {
-          setFreshness("offline");
-        }
-      }
-    };
-
-    void load();
-    const timer = window.setInterval(() => {
-      void load();
-    }, 6000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [slug]);
 
   const stats = useMemo(
     () =>
@@ -519,7 +499,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             </CardHeader>
             <CardContent>
               <div
-                key={`${item.label}-${item.value}-${refreshPulse}`}
+                key={`${item.label}-${item.value}-${dataUpdatedAt}`}
                 className={cn(
                   "text-5xl font-semibold tracking-tight transition-all duration-500",
                   item.valueClassName ?? "text-white",

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DisasterCommandCenter } from '@/components/dashboard/DisasterCommandCenter';
 import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
 import { DashboardModeToggle, type DashboardMode } from '@/components/dashboard/ModeToggle';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function DashboardHomePage() {
   const [mode, setMode] = useState<DashboardMode>('operations');
@@ -22,7 +23,10 @@ export default function DashboardHomePage() {
               : 'Historical trends, correlations, and geospatial distribution analysis'}
           </p>
         </div>
-        <DashboardModeToggle mode={mode} onModeChange={setMode} />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <DashboardModeToggle mode={mode} onModeChange={setMode} />
+        </div>
       </div>
 
       {/* Conditional Rendering */}

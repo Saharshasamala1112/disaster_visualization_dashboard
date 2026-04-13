@@ -1,0 +1,116 @@
+{
+  "name": "Disaster Response Dashboard",
+  "short_name": "Disaster Ops",
+  "description": "Enterprise-grade real-time disaster monitoring, response coordination, and situational awareness",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09090b",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["disaster", "emergency", "maps", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Earthquake Monitoring",
+      "short_name": "Earthquakes",
+      "description": "Real-time earthquake hazard assessment",
+      "url": "/earthquake",
+      "icons": [
+        {
+          "src": "/icon-earthquake-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Cyclone Tracker",
+      "short_name": "Cyclones",
+      "description": "Live cyclone monitoring and path prediction",
+      "url": "/cyclone",
+      "icons": [
+        {
+          "src": "/icon-cyclone-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Flood Alerts",
+      "short_name": "Floods",
+      "description": "Real-time flood risk assessment",
+      "url": "/flood",
+      "icons": [
+        {
+          "src": "/icon-flood-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Wildfire Tracking",
+      "short_name": "Wildfires",
+      "description": "Active wildfire monitoring and spread prediction",
+      "url": "/wildfire",
+      "icons": [
+        {
+          "src": "/icon-wildfire-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/api/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

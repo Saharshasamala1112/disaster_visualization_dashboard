@@ -18,7 +18,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-80 shrink-0 border-r border-zinc-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(240,249,255,0.82))] p-6 text-zinc-900 lg:flex lg:flex-col dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(9,9,11,0.98),rgba(12,12,20,0.95))] dark:text-white">
+    <aside className="hidden w-64 shrink-0 border-r border-zinc-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(240,249,255,0.82))] p-4 text-zinc-900 md:flex md:flex-col lg:w-80 lg:p-6 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(9,9,11,0.98),rgba(12,12,20,0.95))] dark:text-white">
       <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5 dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
         <div className="flex items-center gap-3">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#38bdf8,#10b981)] text-xl shadow-[0_12px_30px_rgba(16,185,129,0.25)]">
@@ -32,7 +32,7 @@ export function Sidebar() {
         <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">A multi-hazard control room designed around field friction, confidence gaps, and response dependencies.</p>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 lg:mt-8">
         <div className="mb-3 text-xs uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-500">Disaster views</div>
         <nav className="space-y-2">
           {disasterRoutes.map((route) => {
@@ -50,7 +50,7 @@ export function Sidebar() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{route.icon}</span>
-                  <span className="font-medium">{route.label}</span>
+                  <span className="text-sm font-medium lg:text-base">{route.label}</span>
                 </div>
                 {active && <ShieldAlert className="size-4 text-emerald-500 dark:text-emerald-300" />}
               </Link>
@@ -59,7 +59,7 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 hidden lg:block">
         <div className="mb-3 text-xs uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-500">System modules</div>
         <div className="space-y-2">
           {supportLinks.map((item) => (
@@ -78,7 +78,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="mt-auto rounded-[1.75rem] border border-emerald-500/25 bg-emerald-500/10 p-5">
+      <div className="mt-auto hidden rounded-[1.75rem] border border-emerald-500/25 bg-emerald-500/10 p-5 lg:block">
         <div className="text-xs uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300/70">Operational promise</div>
         <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">Reduce dashboard fragmentation by keeping alerts, public impact, logistics pressure, and field execution in one decision surface.</p>
       </div>

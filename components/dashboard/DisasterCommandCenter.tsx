@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { Activity, ArrowUpRight, LayoutDashboard, ListChecks, Map, ShieldCheck, Siren, Waves, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -142,11 +142,13 @@ function freshnessBadgeClassName(freshness: DataFreshness) {
 
 export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const config = disasterConfigBySlug[slug];
   const [activePanel, setActivePanel] = useState<OpsPanel>("overview");
   const [pulseEnabled, setPulseEnabled] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
   const [controlRailCollapsed, setControlRailCollapsed] = useState(false);
+  const [liveTransport, setLiveTransport] = useState<"polling" | "socket-connecting" | "socket-live">("polling");
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -214,6 +216,59 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
       window.removeEventListener("popstate", syncPanelFromUrl);
     };
   }, []);
+
+  useEffect(() => {
+    const socketBase = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+    if (!socketBase) {
+      setLiveTransport("polling");
+      return;
+    }
+
+    const separator = socketBase.includes("?") ? "&" : "?";
+    const socketUrl = `${socketBase}${separator}slug=${encodeURIComponent(slug)}`;
+
+    setLiveTransport("socket-connecting");
+
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(socketUrl);
+    } catch {
+      setLiveTransport("polling");
+      return;
+    }
+
+    ws.onopen = () => {
+      setLiveTransport("socket-live");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as { slug?: DisasterSlug; snapshot?: LiveOpsSnapshot };
+        if (!payload.snapshot) return;
+        if (payload.slug && payload.slug !== slug) return;
+
+        queryClient.setQueryData(["live-ops", slug], { snapshot: payload.snapshot });
+      } catch {
+        // Ignore malformed socket payloads and continue polling fallback.
+      }
+    };
+
+    ws.onclose = () => {
+      setLiveTransport("polling");
+    };
+
+    ws.onerror = () => {
+      setLiveTransport("polling");
+    };
+
+    return () => {
+      try {
+        ws?.close();
+      } catch {
+        // No-op cleanup.
+      }
+    };
+  }, [queryClient, slug]);
 
   const handlePanelChange = (panel: OpsPanel) => {
     setActivePanel(panel);
@@ -476,6 +531,23 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
               </Badge>
               <Badge variant="outline" className={cn("px-3 py-1 uppercase tracking-[0.12em]", freshnessBadgeClassName(freshness))}>
                 {freshness === "live" ? "Live sync" : freshness === "stale" ? "Stale cache" : "Offline fallback"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "px-3 py-1 uppercase tracking-[0.12em]",
+                  liveTransport === "socket-live"
+                    ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
+                    : liveTransport === "socket-connecting"
+                      ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                      : "border-zinc-300/70 bg-white/70 text-zinc-700 dark:border-white/15 dark:bg-white/5 dark:text-zinc-300"
+                )}
+              >
+                {liveTransport === "socket-live"
+                  ? "Realtime socket"
+                  : liveTransport === "socket-connecting"
+                    ? "Socket connecting"
+                    : "Polling mode"}
               </Badge>
             </div>
             <div className="space-y-3">

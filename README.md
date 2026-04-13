@@ -4,9 +4,16 @@
 
 ![Status](https://img.shields.io/badge/status-production--ready-brightgreen) ![Next.js](https://img.shields.io/badge/next.js-16.2.3-black?logo=nextdotjs) ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-3178C6?logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/tailwind-4.x-06B6D4?logo=tailwindcss&logoColor=white) ![Leaflet](https://img.shields.io/badge/maps-leaflet-199900?logo=leaflet&logoColor=white) ![TanStack Query](https://img.shields.io/badge/TanStack%20Query-5.x-FF4154?logo=reactquery&logoColor=white) ![Tests](https://img.shields.io/badge/tests-11%20passing-brightgreen?logo=vitest) ![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?logo=pwa) ![Framer Motion](https://img.shields.io/badge/animation-framer--motion-ff4d8d) ![License](https://img.shields.io/badge/license-MIT-green)
 
+[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-disaster--visualization--dashboard.vercel.app-16a34a?style=for-the-badge)](https://disaster-visualization-dashboard.vercel.app)
+
 ## Demo
 
 [![Open Live Dashboard](https://img.shields.io/badge/Open-Live%20Dashboard-16a34a?style=for-the-badge)](https://disaster-visualization-dashboard.vercel.app)
+
+### Demo Video (1–2 min)
+
+- Loom walkthrough: add your recording link here (recommended for judges/recruiters)
+- Suggested script: overview -> map + signals -> action queue -> incident feed -> analytics mode -> mobile/tablet view
 
 ## Preview
 

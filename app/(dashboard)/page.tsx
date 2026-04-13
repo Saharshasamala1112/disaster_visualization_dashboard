@@ -12,18 +12,18 @@ export default function DashboardHomePage() {
   return (
     <div className="space-y-6">
       {/* Mode Toggle */}
-      <div className="sticky top-0 z-40 flex items-center justify-between rounded-2xl border border-white/10 bg-zinc-900/95 px-6 py-4 backdrop-blur-md">
+      <div className="sticky top-0 z-40 flex flex-col gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-white/10 dark:bg-zinc-900/90">
         <div>
-          <h1 className="text-xl font-bold text-white">
+          <h1 className="text-lg font-bold text-zinc-900 sm:text-xl dark:text-white">
             {mode === 'operations' ? 'Disaster Operations Center' : 'Analytics & Visualization'}
           </h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {mode === 'operations'
               ? 'Real-time monitoring, response coordination, and situational awareness'
               : 'Historical trends, correlations, and geospatial distribution analysis'}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <ThemeToggle />
           <DashboardModeToggle mode={mode} onModeChange={setMode} />
         </div>

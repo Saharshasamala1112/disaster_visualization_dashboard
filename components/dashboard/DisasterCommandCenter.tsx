@@ -463,8 +463,8 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_32%),linear-gradient(180deg,_rgba(24,24,27,0.98),_rgba(9,9,11,0.96))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-6 lg:gap-8">
+      <section className="relative overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.14),_transparent_32%),linear-gradient(180deg,_rgba(248,250,252,0.98),_rgba(241,245,249,0.96))] p-5 shadow-[0_30px_70px_rgba(15,23,42,0.12)] sm:p-8 dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_32%),linear-gradient(180deg,_rgba(24,24,27,0.98),_rgba(9,9,11,0.96))] dark:shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.04)_45%,transparent_100%)]" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
@@ -477,22 +477,22 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
               </Badge>
             </div>
             <div className="space-y-3">
-              <h2 className="max-w-2xl text-4xl font-semibold tracking-tight text-white lg:text-5xl">{config.pageTitle}</h2>
-              <p className="max-w-2xl text-base leading-7 text-zinc-300 lg:text-lg">{config.subtitle}</p>
+              <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-zinc-900 lg:text-5xl dark:text-white">{config.pageTitle}</h2>
+              <p className="max-w-2xl text-base leading-7 text-zinc-600 lg:text-lg dark:text-zinc-300">{config.subtitle}</p>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px] lg:grid-cols-1">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-              <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">Why This Is Different</div>
-              <p className="mt-2 text-sm leading-6 text-zinc-300">The dashboard prioritizes operational bottlenecks, confidence gaps, and cross-system dependencies instead of isolated charts.</p>
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/65 p-4 backdrop-blur-sm dark:border-white/10 dark:bg-black/25">
+              <div className="text-xs uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-500">Why This Is Different</div>
+              <p className="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">The dashboard prioritizes operational bottlenecks, confidence gaps, and cross-system dependencies instead of isolated charts.</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/65 p-4 backdrop-blur-sm dark:border-white/10 dark:bg-black/25">
               <div className="flex items-center gap-2 text-emerald-300">
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(74,222,128,0.75)]" />
-                <span className="text-sm font-medium">{config.liveLabel}</span>
+                <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{config.liveLabel}</span>
               </div>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">{config.liveSubLabel}</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{config.liveSubLabel}</p>
             </div>
           </div>
         </div>
@@ -525,7 +525,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
       </section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
-        <aside className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(180deg,rgba(24,24,27,0.92),rgba(9,9,11,0.9))] p-4">
+        <aside className="rounded-[1.8rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(241,245,249,0.9))] p-4 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.92),rgba(9,9,11,0.9))]">
           <div className="mb-3 px-2 text-xs uppercase tracking-[0.22em] text-zinc-500">Control panels</div>
           <div className="space-y-2">
             {panelButtons.map((panel) => {
@@ -540,12 +540,12 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                   className={cn(
                     "w-full rounded-2xl border px-4 py-3 text-left transition-all",
                     active
-                      ? "border-emerald-400/30 bg-emerald-400/10 text-white shadow-[0_10px_28px_rgba(16,185,129,0.16)]"
-                      : "border-white/8 bg-black/10 text-zinc-300 hover:border-white/20 hover:bg-white/5"
+                      ? "border-emerald-500/35 bg-emerald-500/10 text-zinc-900 shadow-[0_10px_28px_rgba(16,185,129,0.16)] dark:border-emerald-400/30 dark:text-white"
+                      : "border-zinc-200/70 bg-white/70 text-zinc-700 hover:border-zinc-300 hover:bg-white dark:border-white/8 dark:bg-black/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:bg-white/5"
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={cn("rounded-xl p-2", active ? "bg-emerald-400/15 text-emerald-300" : "bg-white/5 text-zinc-400")}>
+                    <div className={cn("rounded-xl p-2", active ? "bg-emerald-400/15 text-emerald-600 dark:text-emerald-300" : "bg-zinc-100 text-zinc-500 dark:bg-white/5 dark:text-zinc-400")}>
                       <Icon className="size-4" />
                     </div>
                     <div>
@@ -560,9 +560,9 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
         </aside>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-zinc-900/70 px-4 py-3 backdrop-blur-sm">
+          <div className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white/70 px-4 py-3 backdrop-blur-sm dark:border-white/10 dark:bg-zinc-900/70">
             <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Current panel</div>
-            <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-300">
+            <div className="flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
               <activePanelMeta.icon className="size-3" />
               <span>{activePanelMeta.label}</span>
             </div>

@@ -27,7 +27,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white"
+      className="flex items-center gap-1.5 rounded-full border border-zinc-300/70 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-400 hover:bg-zinc-50 dark:border-white/15 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/25 dark:hover:bg-white/10 dark:hover:text-white"
     >
       {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
       {isDark ? 'Light' : 'Dark'}

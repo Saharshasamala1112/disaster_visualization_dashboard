@@ -9,7 +9,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: "cover",
-  colorScheme: "dark",
+  colorScheme: "dark light",
   themeColor: "#22c55e",
 };
 
@@ -87,7 +87,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
       </head>
-      <body className="bg-zinc-950 text-white antialiased">
+      <body className="min-h-dvh bg-background text-foreground antialiased">
         <Providers>
           {children}
         </Providers>

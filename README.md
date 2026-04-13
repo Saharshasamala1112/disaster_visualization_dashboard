@@ -6,7 +6,9 @@
 
 ## Demo
 
-- Live App: https://disaster-dashboard.vercel.app
+- Live App (Production): https://disaster-visualization-dashboard.vercel.app
+- Vercel Deployment URL: https://disaster-visualization-git-2d5fab-saharshasamala1112s-projects.vercel.app
+- Vercel Alias URL: https://disaster-visualization-dashboard-kilp9b268.vercel.app
 - Repository: https://github.com/Saharshasamala1112/disaster_visualization_dashboard
 - Deploy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Saharshasamala1112/disaster_visualization_dashboard)
 

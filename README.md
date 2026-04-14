@@ -470,6 +470,12 @@ CMD ["npm", "start"]
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch strategy, coding standards, and PR checklist.
 
+Community standards and governance:
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [License](LICENSE)
+
 Contributions welcome! Please:
 
 1. **Fork** the repo

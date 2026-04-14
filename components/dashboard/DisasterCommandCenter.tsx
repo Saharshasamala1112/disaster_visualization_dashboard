@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
-import { Activity, ArrowUpRight, LayoutDashboard, ListChecks, Map, ShieldCheck, Siren, Waves, Zap } from "lucide-react";
+import { Activity, ArrowUpRight, ChevronDown, Globe, LayoutDashboard, ListChecks, Map, MapPin, Navigation2, Search, ShieldCheck, Siren, Waves, X, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
@@ -218,6 +218,80 @@ function haversineDistanceKm(lat1: number, lng1: number, lat2: number, lng2: num
   return 6371 * c;
 }
 
+function countryFlag(code: string): string {
+  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65)).join("");
+}
+
+const COUNTRIES: { code: string; name: string }[] = [
+  { code: "AF", name: "Afghanistan" }, { code: "AL", name: "Albania" }, { code: "DZ", name: "Algeria" },
+  { code: "AS", name: "American Samoa" }, { code: "AD", name: "Andorra" }, { code: "AO", name: "Angola" },
+  { code: "AG", name: "Antigua and Barbuda" }, { code: "AR", name: "Argentina" }, { code: "AM", name: "Armenia" },
+  { code: "AU", name: "Australia" }, { code: "AT", name: "Austria" }, { code: "AZ", name: "Azerbaijan" },
+  { code: "BS", name: "Bahamas" }, { code: "BH", name: "Bahrain" }, { code: "BD", name: "Bangladesh" },
+  { code: "BB", name: "Barbados" }, { code: "BY", name: "Belarus" }, { code: "BE", name: "Belgium" },
+  { code: "BZ", name: "Belize" }, { code: "BJ", name: "Benin" }, { code: "BT", name: "Bhutan" },
+  { code: "BO", name: "Bolivia" }, { code: "BA", name: "Bosnia and Herzegovina" }, { code: "BW", name: "Botswana" },
+  { code: "BR", name: "Brazil" }, { code: "BN", name: "Brunei" }, { code: "BG", name: "Bulgaria" },
+  { code: "BF", name: "Burkina Faso" }, { code: "BI", name: "Burundi" }, { code: "CV", name: "Cabo Verde" },
+  { code: "KH", name: "Cambodia" }, { code: "CM", name: "Cameroon" }, { code: "CA", name: "Canada" },
+  { code: "CF", name: "Central African Republic" }, { code: "TD", name: "Chad" }, { code: "CL", name: "Chile" },
+  { code: "CN", name: "China" }, { code: "CO", name: "Colombia" }, { code: "KM", name: "Comoros" },
+  { code: "CD", name: "Congo (DRC)" }, { code: "CG", name: "Congo (Republic)" }, { code: "CR", name: "Costa Rica" },
+  { code: "CI", name: "Côte d'Ivoire" }, { code: "HR", name: "Croatia" }, { code: "CU", name: "Cuba" },
+  { code: "CY", name: "Cyprus" }, { code: "CZ", name: "Czechia" }, { code: "DK", name: "Denmark" },
+  { code: "DJ", name: "Djibouti" }, { code: "DM", name: "Dominica" }, { code: "DO", name: "Dominican Republic" },
+  { code: "EC", name: "Ecuador" }, { code: "EG", name: "Egypt" }, { code: "SV", name: "El Salvador" },
+  { code: "GQ", name: "Equatorial Guinea" }, { code: "ER", name: "Eritrea" }, { code: "EE", name: "Estonia" },
+  { code: "SZ", name: "Eswatini" }, { code: "ET", name: "Ethiopia" }, { code: "FJ", name: "Fiji" },
+  { code: "FI", name: "Finland" }, { code: "FR", name: "France" }, { code: "GA", name: "Gabon" },
+  { code: "GM", name: "Gambia" }, { code: "GE", name: "Georgia" }, { code: "DE", name: "Germany" },
+  { code: "GH", name: "Ghana" }, { code: "GR", name: "Greece" }, { code: "GL", name: "Greenland" },
+  { code: "GD", name: "Grenada" }, { code: "GT", name: "Guatemala" }, { code: "GN", name: "Guinea" },
+  { code: "GW", name: "Guinea-Bissau" }, { code: "GY", name: "Guyana" }, { code: "HT", name: "Haiti" },
+  { code: "HN", name: "Honduras" }, { code: "HK", name: "Hong Kong" }, { code: "HU", name: "Hungary" },
+  { code: "IS", name: "Iceland" }, { code: "IN", name: "India" }, { code: "ID", name: "Indonesia" },
+  { code: "IR", name: "Iran" }, { code: "IQ", name: "Iraq" }, { code: "IE", name: "Ireland" },
+  { code: "IL", name: "Israel" }, { code: "IT", name: "Italy" }, { code: "JM", name: "Jamaica" },
+  { code: "JP", name: "Japan" }, { code: "JO", name: "Jordan" }, { code: "KZ", name: "Kazakhstan" },
+  { code: "KE", name: "Kenya" }, { code: "KI", name: "Kiribati" }, { code: "KP", name: "North Korea" },
+  { code: "KR", name: "South Korea" }, { code: "KW", name: "Kuwait" }, { code: "KG", name: "Kyrgyzstan" },
+  { code: "LA", name: "Laos" }, { code: "LV", name: "Latvia" }, { code: "LB", name: "Lebanon" },
+  { code: "LS", name: "Lesotho" }, { code: "LR", name: "Liberia" }, { code: "LY", name: "Libya" },
+  { code: "LI", name: "Liechtenstein" }, { code: "LT", name: "Lithuania" }, { code: "LU", name: "Luxembourg" },
+  { code: "MG", name: "Madagascar" }, { code: "MW", name: "Malawi" }, { code: "MY", name: "Malaysia" },
+  { code: "MV", name: "Maldives" }, { code: "ML", name: "Mali" }, { code: "MT", name: "Malta" },
+  { code: "MH", name: "Marshall Islands" }, { code: "MR", name: "Mauritania" }, { code: "MU", name: "Mauritius" },
+  { code: "MX", name: "Mexico" }, { code: "FM", name: "Micronesia" }, { code: "MD", name: "Moldova" },
+  { code: "MC", name: "Monaco" }, { code: "MN", name: "Mongolia" }, { code: "ME", name: "Montenegro" },
+  { code: "MA", name: "Morocco" }, { code: "MZ", name: "Mozambique" }, { code: "MM", name: "Myanmar" },
+  { code: "NA", name: "Namibia" }, { code: "NR", name: "Nauru" }, { code: "NP", name: "Nepal" },
+  { code: "NL", name: "Netherlands" }, { code: "NZ", name: "New Zealand" }, { code: "NI", name: "Nicaragua" },
+  { code: "NE", name: "Niger" }, { code: "NG", name: "Nigeria" }, { code: "MK", name: "North Macedonia" },
+  { code: "NO", name: "Norway" }, { code: "OM", name: "Oman" }, { code: "PK", name: "Pakistan" },
+  { code: "PW", name: "Palau" }, { code: "PS", name: "Palestine" }, { code: "PA", name: "Panama" },
+  { code: "PG", name: "Papua New Guinea" }, { code: "PY", name: "Paraguay" }, { code: "PE", name: "Peru" },
+  { code: "PH", name: "Philippines" }, { code: "PL", name: "Poland" }, { code: "PT", name: "Portugal" },
+  { code: "PR", name: "Puerto Rico" }, { code: "QA", name: "Qatar" }, { code: "RO", name: "Romania" },
+  { code: "RU", name: "Russia" }, { code: "RW", name: "Rwanda" }, { code: "KN", name: "Saint Kitts and Nevis" },
+  { code: "LC", name: "Saint Lucia" }, { code: "VC", name: "Saint Vincent and the Grenadines" },
+  { code: "WS", name: "Samoa" }, { code: "SM", name: "San Marino" }, { code: "ST", name: "Sao Tome and Principe" },
+  { code: "SA", name: "Saudi Arabia" }, { code: "SN", name: "Senegal" }, { code: "RS", name: "Serbia" },
+  { code: "SC", name: "Seychelles" }, { code: "SL", name: "Sierra Leone" }, { code: "SG", name: "Singapore" },
+  { code: "SK", name: "Slovakia" }, { code: "SI", name: "Slovenia" }, { code: "SB", name: "Solomon Islands" },
+  { code: "SO", name: "Somalia" }, { code: "ZA", name: "South Africa" }, { code: "SS", name: "South Sudan" },
+  { code: "ES", name: "Spain" }, { code: "LK", name: "Sri Lanka" }, { code: "SD", name: "Sudan" },
+  { code: "SR", name: "Suriname" }, { code: "SE", name: "Sweden" }, { code: "CH", name: "Switzerland" },
+  { code: "SY", name: "Syria" }, { code: "TW", name: "Taiwan" }, { code: "TJ", name: "Tajikistan" },
+  { code: "TZ", name: "Tanzania" }, { code: "TH", name: "Thailand" }, { code: "TL", name: "Timor-Leste" },
+  { code: "TG", name: "Togo" }, { code: "TO", name: "Tonga" }, { code: "TT", name: "Trinidad and Tobago" },
+  { code: "TN", name: "Tunisia" }, { code: "TR", name: "Türkiye" }, { code: "TM", name: "Turkmenistan" },
+  { code: "TV", name: "Tuvalu" }, { code: "UG", name: "Uganda" }, { code: "UA", name: "Ukraine" },
+  { code: "AE", name: "United Arab Emirates" }, { code: "GB", name: "United Kingdom" },
+  { code: "US", name: "United States" }, { code: "UY", name: "Uruguay" }, { code: "UZ", name: "Uzbekistan" },
+  { code: "VU", name: "Vanuatu" }, { code: "VE", name: "Venezuela" }, { code: "VN", name: "Vietnam" },
+  { code: "YE", name: "Yemen" }, { code: "ZM", name: "Zambia" }, { code: "ZW", name: "Zimbabwe" },
+];
+
 function resolveLocation(location: string): ResolvedLocation | null {
   const coordsMatch = location.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
   if (coordsMatch) {
@@ -259,9 +333,10 @@ function resolveLocation(location: string): ResolvedLocation | null {
   return null;
 }
 
-function buildPrediction(slug: DisasterSlug, location: string): PredictionResult | null {
+function buildPrediction(slug: DisasterSlug, location: string, displayLabel?: string): PredictionResult | null {
   const resolved = resolveLocation(location);
   if (!resolved) return null;
+  if (displayLabel) resolved.label = displayLabel;
 
   const hotspots = riskHeatPointsBySlug[slug].length > 0
     ? riskHeatPointsBySlug[slug]
@@ -346,6 +421,16 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
   const [predictionLocation, setPredictionLocation] = useState("");
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
   const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [predictionSuggestions, setPredictionSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<{ code: string; name: string } | null>(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const predictionSearchRef = useRef<HTMLDivElement>(null);
+  const countryPickerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cacheKey = `live-ops-cache:${slug}`;
 
@@ -505,6 +590,19 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     };
   }, [queryClient, slug]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (predictionSearchRef.current && !predictionSearchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+      if (countryPickerRef.current && !countryPickerRef.current.contains(e.target as Node)) {
+        setShowCountryPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handlePanelChange = (panel: OpsPanel) => {
     if (!allowedPanelIds.includes(panel)) return;
     setActivePanel(panel);
@@ -513,23 +611,165 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
   };
 
-  const handlePrediction = () => {
-    const location = predictionLocation.trim();
+  const handlePrediction = async (overrideLocation?: string) => {
+    const location = (overrideLocation ?? predictionLocation).trim();
     if (!location) {
-      setPredictionError("Enter a location first (example: Mumbai or 19.076,72.8777).");
+      setPredictionError("Enter a location first.");
       setPredictionResult(null);
       return;
     }
 
-    const nextPrediction = buildPrediction(slug, location);
-    if (!nextPrediction) {
-      setPredictionError("Location not recognized. Try a known city name or coordinates like 19.076,72.8777.");
+    const directPrediction = buildPrediction(slug, location);
+    if (directPrediction) {
+      setPredictionError(null);
+      setPredictionResult(directPrediction);
+      return;
+    }
+
+    try {
+      const countryParam = selectedCountry ? `&countrycodes=${selectedCountry.code.toLowerCase()}` : "";
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1&addressdetails=0${countryParam}`,
+        { headers: { Accept: "application/json" } }
+      );
+
+      if (!response.ok) {
+        throw new Error("Geocoding request failed");
+      }
+
+      const geocoded = (await response.json()) as { display_name: string; lat: string; lon: string }[];
+      if (geocoded.length === 0) {
+        setPredictionError("Could not find that location. Try a nearby city/town name or coordinates.");
+        setPredictionResult(null);
+        return;
+      }
+
+      const best = geocoded[0];
+      const label = best.display_name.split(", ").slice(0, 3).join(", ");
+      const coords = `${best.lat},${best.lon}`;
+      const predicted = buildPrediction(slug, coords, label);
+
+      if (!predicted) {
+        setPredictionError("Prediction unavailable for this location right now. Try another nearby place.");
+        setPredictionResult(null);
+        return;
+      }
+
+      setPredictionLocation(label);
+      setPredictionError(null);
+      setPredictionResult(predicted);
+    } catch {
+      setPredictionError("Location search failed. Check your internet connection and try again.");
+      setPredictionResult(null);
+    }
+  };
+
+  const handleLocationInput = (value: string) => {
+    setPredictionLocation(value);
+    if (predictionError) setPredictionError(null);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (value.trim().length < 2) {
+      setPredictionSuggestions([]);
+      setShowSuggestions(false);
+      setIsFetchingSuggestions(false);
+      return;
+    }
+
+    setIsFetchingSuggestions(true);
+    setShowSuggestions(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const countryParam = selectedCountry ? `&countrycodes=${selectedCountry.code.toLowerCase()}` : "";
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=6&addressdetails=0${countryParam}`,
+          { headers: { Accept: "application/json" } }
+        );
+        if (!res.ok) throw new Error("Nominatim error");
+        const data = (await res.json()) as { display_name: string; lat: string; lon: string }[];
+        const suggestions = data.map((item) => ({
+          label: item.display_name.split(", ").slice(0, 3).join(", "),
+          lat: Number(item.lat),
+          lng: Number(item.lon),
+        }));
+        setPredictionSuggestions(suggestions);
+        setShowSuggestions(suggestions.length > 0);
+      } catch {
+        setPredictionSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setIsFetchingSuggestions(false);
+      }
+    }, 350);
+  };
+
+  const handleUseMyLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setPredictionError("Geolocation is not supported by this browser.");
+      return;
+    }
+    setIsLocating(true);
+    setPredictionError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = `${pos.coords.latitude.toFixed(4)},${pos.coords.longitude.toFixed(4)}`;
+        setPredictionLocation(coords);
+        setPredictionSuggestions([]);
+        setShowSuggestions(false);
+        setIsLocating(false);
+        const nextPrediction = buildPrediction(slug, coords);
+        if (nextPrediction) {
+          setPredictionError(null);
+          setPredictionResult(nextPrediction);
+        } else {
+          setPredictionError("Could not estimate risk for your coordinates. Try a nearby city name.");
+          setPredictionResult(null);
+        }
+      },
+      () => {
+        setIsLocating(false);
+        setPredictionError("Location access denied. Enter a city name manually.");
+      },
+      { timeout: 8000 }
+    );
+  };
+
+  const handleMapLocationSelect = async ({ lat, lng }: { lat: number; lng: number }) => {
+    const coords = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    setPredictionLocation(coords);
+    setPredictionSuggestions([]);
+    setShowSuggestions(false);
+
+    const directPrediction = buildPrediction(slug, coords);
+    if (!directPrediction) {
+      setPredictionError("Prediction unavailable for this map location. Try another nearby point.");
       setPredictionResult(null);
       return;
     }
 
     setPredictionError(null);
-    setPredictionResult(nextPrediction);
+    setPredictionResult(directPrediction);
+
+    try {
+      const reverseResponse = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`,
+        { headers: { Accept: "application/json" } }
+      );
+      if (!reverseResponse.ok) return;
+
+      const reverseData = (await reverseResponse.json()) as { display_name?: string };
+      if (!reverseData.display_name) return;
+
+      const label = reverseData.display_name.split(", ").slice(0, 3).join(", ");
+      const relabeledPrediction = buildPrediction(slug, coords, label);
+      if (!relabeledPrediction) return;
+
+      setPredictionLocation(label);
+      setPredictionResult(relabeledPrediction);
+    } catch {
+      // Keep coordinate-based prediction when reverse geocoding is unavailable.
+    }
   };
 
   const stats = useMemo(
@@ -605,7 +845,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
               </Badge>
             </div>
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 text-xs text-zinc-400">
-              <span>Pulse speed = urgency. Disable for accessibility or low-power mode.</span>
+              <span>Pulse speed = urgency. Click anywhere on the map to run location prediction.</span>
               <button
                 type="button"
                 onClick={() => setPulseEnabled((value) => !value)}
@@ -628,6 +868,7 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
                 subTitle={config.liveSubLabel}
                 heatPoints={riskHeatPoints}
                 pulseEnabled={pulseEnabled}
+                onLocationSelect={handleMapLocationSelect}
               />
             </div>
           </motion.div>
@@ -887,34 +1128,225 @@ export function DisasterCommandCenter({ slug }: { slug: DisasterSlug }) {
             <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
               Enter a location to estimate short-term severity, confidence, and recommended response priority.
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={predictionLocation}
-                onChange={(event) => {
-                  setPredictionLocation(event.target.value);
-                  if (predictionError) {
-                    setPredictionError(null);
-                  }
-                }}
-                placeholder="Enter city, district, or coordinates"
-                className="h-11 flex-1 rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-sky-400 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-100"
-              />
+            {/* Step 1 — Country selector */}
+            <div ref={countryPickerRef} className="relative">
               <button
                 type="button"
-                onClick={handlePrediction}
-                className="h-11 rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-4 text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 transition hover:bg-emerald-500/25 dark:text-emerald-300"
+                onClick={() => { setShowCountryPicker((v) => !v); setCountrySearch(""); }}
+                className={cn(
+                  "flex h-10 w-full items-center gap-2 rounded-xl border px-3 text-sm shadow-sm transition",
+                  "border-zinc-200 bg-white hover:border-zinc-300 dark:border-white/15 dark:bg-zinc-900 dark:hover:border-white/25",
+                  showCountryPicker && "border-sky-400 ring-1 ring-sky-400/30 dark:border-sky-500/60"
+                )}
               >
-                Predict
+                <Globe className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+                {selectedCountry ? (
+                  <>
+                    <span className="text-base leading-none">{countryFlag(selectedCountry.code)}</span>
+                    <span className="flex-1 text-left font-medium text-zinc-900 dark:text-zinc-100">{selectedCountry.name}</span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCountry(null);
+                        setPredictionLocation("");
+                        setPredictionSuggestions([]);
+                        setShowSuggestions(false);
+                        setPredictionResult(null);
+                        setPredictionError(null);
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.click()}
+                      className="flex h-5 w-5 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-white/10"
+                    >
+                      <X className="h-3 w-3" />
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 text-left text-zinc-400">Select a country…</span>
+                    <ChevronDown className={cn("h-4 w-4 text-zinc-400 transition-transform", showCountryPicker && "rotate-180")} />
+                  </>
+                )}
               </button>
+
+              <AnimatePresence>
+                {showCountryPicker && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.14)] dark:border-white/10 dark:bg-zinc-900"
+                  >
+                    <div className="border-b border-zinc-100 p-2 dark:border-white/[0.06]">
+                      <input
+                        autoFocus
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        placeholder="Search country…"
+                        className="w-full rounded-lg bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:bg-white/5 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="max-h-52 overflow-y-auto overscroll-contain">
+                      {COUNTRIES.filter((c) =>
+                        c.name.toLowerCase().includes(countrySearch.toLowerCase())
+                      ).map((c) => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSelectedCountry(c);
+                            setShowCountryPicker(false);
+                            setCountrySearch("");
+                            setPredictionLocation("");
+                            setPredictionSuggestions([]);
+                            setShowSuggestions(false);
+                            setPredictionResult(null);
+                            setPredictionError(null);
+                          }}
+                          className={cn(
+                            "flex w-full items-center gap-3 px-4 py-2 text-sm transition",
+                            selectedCountry?.code === c.code
+                              ? "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"
+                              : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-white/5"
+                          )}
+                        >
+                          <span className="text-base leading-none">{countryFlag(c.code)}</span>
+                          <span>{c.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Step 2 — Place search */}
+            <div className="relative" ref={predictionSearchRef}>
+              {/* Google Maps-style search bar */}
+              <div
+                className={cn(
+                  "flex h-12 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all",
+                  "focus-within:border-sky-400 focus-within:shadow-[0_2px_18px_rgba(56,189,248,0.18)]",
+                  "dark:border-white/15 dark:bg-zinc-900 dark:shadow-black/40 dark:focus-within:border-sky-500/60"
+                )}
+              >
+                <MapPin className="h-4 w-4 flex-shrink-0 text-rose-500 dark:text-rose-400" />
+                <input
+                  value={predictionLocation}
+                  onChange={(e) => handleLocationInput(e.target.value)}
+                  onFocus={() => (predictionSuggestions.length > 0 || isFetchingSuggestions) && setShowSuggestions(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { setShowSuggestions(false); handlePrediction(); }
+                    if (e.key === "Escape") setShowSuggestions(false);
+                  }}
+                  placeholder={selectedCountry ? `Search in ${selectedCountry.name}…` : "Search any location worldwide…"}
+                  className="flex-1 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                />
+                {predictionLocation && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPredictionLocation("");
+                      setPredictionSuggestions([]);
+                      setShowSuggestions(false);
+                      setPredictionResult(null);
+                      setPredictionError(null);
+                    }}
+                    className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-white/10 dark:hover:text-zinc-300"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <div className="mx-1 h-5 w-px bg-zinc-200 dark:bg-white/10" />
+                <button
+                  type="button"
+                  onClick={handleUseMyLocation}
+                  disabled={isLocating}
+                  title="Use my current location"
+                  className={cn(
+                    "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full transition",
+                    isLocating
+                      ? "text-sky-500"
+                      : "text-zinc-400 hover:bg-zinc-100 hover:text-sky-600 dark:hover:bg-white/10 dark:hover:text-sky-400"
+                  )}
+                >
+                  {isLocating ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Navigation2 className="h-4 w-4" />
+                    </motion.div>
+                  ) : (
+                    <Navigation2 className="h-4 w-4" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowSuggestions(false); handlePrediction(); }}
+                  title="Search"
+                  className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:bg-sky-600 active:scale-95"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Autocomplete dropdown */}
+              <AnimatePresence>
+                {showSuggestions && (predictionSuggestions.length > 0 || isFetchingSuggestions) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-zinc-900"
+                  >
+                    {isFetchingSuggestions ? (
+                      <div className="flex items-center gap-2 px-4 py-3 text-xs text-zinc-400 dark:text-zinc-500">
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}>
+                          <Search className="h-3.5 w-3.5" />
+                        </motion.div>
+                        Searching places…
+                      </div>
+                    ) : (
+                      predictionSuggestions.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setPredictionLocation(item.label);
+                            setShowSuggestions(false);
+                            setPredictionSuggestions([]);
+                            const coords = `${item.lat},${item.lng}`;
+                            const result = buildPrediction(slug, coords, item.label);
+                            if (result) {
+                              setPredictionError(null);
+                              setPredictionResult(result);
+                            } else {
+                              setPredictionError("Could not estimate risk for this location.");
+                              setPredictionResult(null);
+                            }
+                          }}
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-zinc-700 transition hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-white/5"
+                        >
+                          <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-rose-400" />
+                          <span className="line-clamp-1">{item.label}</span>
+                        </button>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             {predictionError && (
               <div className="rounded-lg border border-rose-300/70 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300">
                 {predictionError}
               </div>
             )}
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              Supported quick examples: Mumbai, Delhi, Chennai, Dehradun, Guwahati, or coordinates like 28.6139,77.2090
-            </div>
           </div>
 
           <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-white/10 dark:bg-black/20">

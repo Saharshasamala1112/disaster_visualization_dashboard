@@ -20,23 +20,62 @@ type LiveMapProps = {
   subTitle?: string;
   heatPoints?: HeatPoint[];
   pulseEnabled?: boolean;
+  onLocationSelect?: (coords: { lat: number; lng: number }) => void;
 };
 
-// 5-tier professional risk palette with precise thresholds (monitor → moderate → high → severe → critical)
-function heatColor(intensity: number) {
-  if (intensity >= 0.85) return '#f43f5e';  // rose-500   — critical / extreme risk
-  if (intensity >= 0.70) return '#ea580c';  // orange-600 — severe / high impact
-  if (intensity >= 0.52) return '#eab308';  // yellow-500 — high / moderate impact
-  if (intensity >= 0.33) return '#22c55e';  // green-500  — moderate / watch
-  return '#22d3ee';                         // cyan-400   — low / monitor
-}
+type RiskBand = {
+  color: string;
+  tier: string;
+  description: string;
+  pct: string;
+  ringOpacities: [number, number, number, number, number];
+};
 
-function riskLabel(intensity: number): { tier: string; description: string } {
-  if (intensity >= 0.85) return { tier: 'Critical', description: 'Extreme risk, immediate action' };
-  if (intensity >= 0.70) return { tier: 'Severe', description: 'High impact, urgent' };
-  if (intensity >= 0.52) return { tier: 'High', description: 'Moderate impact, monitor' };
-  if (intensity >= 0.33) return { tier: 'Moderate', description: 'Low impact, track' };
-  return { tier: 'Low', description: 'Baseline, informational' };
+// Deliberately separated hues for map readability: blue → green → yellow → orange → red.
+function riskBand(intensity: number): RiskBand {
+  if (intensity >= 0.85) {
+    return {
+      color: '#dc2626',
+      tier: 'Critical',
+      description: 'Extreme risk, immediate action',
+      pct: '85–100%',
+      ringOpacities: [0.10, 0.17, 0.28, 0.40, 0.56],
+    };
+  }
+  if (intensity >= 0.70) {
+    return {
+      color: '#f97316',
+      tier: 'Severe',
+      description: 'High impact, urgent',
+      pct: '70–84%',
+      ringOpacities: [0.09, 0.15, 0.24, 0.34, 0.48],
+    };
+  }
+  if (intensity >= 0.52) {
+    return {
+      color: '#facc15',
+      tier: 'High',
+      description: 'Moderate impact, monitor',
+      pct: '52–69%',
+      ringOpacities: [0.08, 0.13, 0.21, 0.30, 0.42],
+    };
+  }
+  if (intensity >= 0.33) {
+    return {
+      color: '#22c55e',
+      tier: 'Moderate',
+      description: 'Low impact, track',
+      pct: '33–51%',
+      ringOpacities: [0.07, 0.11, 0.17, 0.24, 0.34],
+    };
+  }
+  return {
+    color: '#0ea5e9',
+    tier: 'Low',
+    description: 'Baseline, informational',
+    pct: '0–32%',
+    ringOpacities: [0.06, 0.09, 0.14, 0.20, 0.28],
+  };
 }
 
 function pulseDurationMs(intensity: number) {
@@ -54,12 +93,18 @@ export default function LiveMap({
   subTitle = 'Updated just now • OpenStreetMap',
   heatPoints = [],
   pulseEnabled = true,
+  onLocationSelect,
 }: LiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<LeafletMap | null>(null);
   const overlays = useRef<LayerGroup | null>(null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [legendCollapsed, setLegendCollapsed] = useState(false);
+  const onLocationSelectRef = useRef(onLocationSelect);
+
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -122,6 +167,13 @@ export default function LiveMap({
           attribution: '&copy; OpenStreetMap contributors',
           maxZoom: 19,
         }).addTo(mapInstance.current);
+
+        mapInstance.current.on('click', (event) => {
+          onLocationSelectRef.current?.({
+            lat: event.latlng.lat,
+            lng: event.latlng.lng,
+          });
+        });
       }
 
       overlays.current = L.layerGroup().addTo(mapInstance.current);
@@ -164,26 +216,39 @@ export default function LiveMap({
 
       pointSet.forEach((point) => {
         const radiusMeters = (point.radiusKm ?? 50) * 1000;
-        const color = heatColor(point.intensity);
-        const risk = riskLabel(point.intensity);
+        const risk = riskBand(point.intensity);
+        const color = risk.color;
         const pulseDuration = pulseDurationMs(point.intensity);
         const pulseSize = Math.round(11 + point.intensity * 26); // scaled for professional appearance
 
         // 5 concentric rings with professional exponential gradient falloff
         const ringMultipliers = [1, 0.72, 0.48, 0.28, 0.12];
-        const ringOpacities   = [0.04, 0.08, 0.14, 0.22, 0.35];
+        const ringOpacities = risk.ringOpacities;
 
         ringMultipliers.forEach((multiplier, index) => {
           L.circle([point.lat, point.lng], {
             radius: Math.round(radiusMeters * multiplier),
             color: index === 0 ? color : 'transparent',
-            weight: index === 0 ? 2.0 : 0,
-            opacity: index === 0 ? 0.7 : 0,
+            weight: index === 0 ? 2.4 : 0,
+            opacity: index === 0 ? 0.92 : 0,
             fillColor: color,
-            fillOpacity: ringOpacities[index] + point.intensity * 0.08,
+            fillOpacity: ringOpacities[index],
             lineCap: 'round',
           }).addTo(layerGroup);
         });
+
+        // Critical hotspots get a dashed outer ring to improve distinction for color-blind users.
+        if (risk.tier === 'Critical') {
+          L.circle([point.lat, point.lng], {
+            radius: Math.round(radiusMeters * 1.08),
+            color,
+            weight: 3,
+            opacity: 0.98,
+            fillOpacity: 0,
+            dashArray: '10 8',
+            lineCap: 'round',
+          }).addTo(layerGroup);
+        }
 
         L.marker([point.lat, point.lng], {
           icon: L.divIcon({
@@ -218,7 +283,7 @@ export default function LiveMap({
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-zinc-950 shadow-2xl">
-      <div ref={mapRef} className="absolute inset-0" />
+      <div ref={mapRef} className="absolute inset-0 cursor-crosshair" />
 
       <div className="pointer-events-none absolute left-3 top-3 z-[1000] max-w-[78%] space-y-1 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-4 py-3 shadow-lg backdrop-blur-md sm:left-6 sm:top-6 sm:max-w-sm sm:px-5 sm:py-3.5">
         <div className="flex items-center gap-2">
@@ -231,44 +296,42 @@ export default function LiveMap({
       </div>
 
       <div className="pointer-events-none absolute bottom-4 right-3 z-[1000] sm:bottom-5 sm:right-5">
-        {isCompactViewport && legendCollapsed ? (
+        {legendCollapsed ? (
           <button
             type="button"
             onClick={() => setLegendCollapsed(false)}
             className="pointer-events-auto rounded-full border border-white/20 bg-zinc-900/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-100 shadow-lg backdrop-blur-md"
           >
-            Show legend
+            Show risk scale
           </button>
         ) : (
           <div className="pointer-events-auto w-44 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 px-3 py-2.5 shadow-lg backdrop-blur-md sm:w-56">
             <div className="mb-2 flex items-center justify-between">
               <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">Risk Scale</div>
-              {isCompactViewport && (
-                <button
-                  type="button"
-                  onClick={() => setLegendCollapsed(true)}
-                  className="rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-200"
-                >
-                  Hide
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setLegendCollapsed(true)}
+                className="rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-200"
+              >
+                Hide
+              </button>
             </div>
             <div className="space-y-1.5">
               {([
-                { color: '#22d3ee', label: 'Low', pct: '0–32%', desc: 'Monitor' },
-                { color: '#22c55e', label: 'Moderate', pct: '33–51%', desc: 'Watch' },
-                { color: '#eab308', label: 'High', pct: '52–69%', desc: 'Prepare' },
-                { color: '#ea580c', label: 'Severe', pct: '70–84%', desc: 'Activate' },
-                { color: '#f43f5e', label: 'Critical', pct: '85–100%', desc: 'Act now' },
-              ] as const).map(({ color, label, pct, desc }) => (
-                <div key={label} className="rounded-md border border-white/5 bg-white/3 p-1.5">
+                riskBand(0.15),
+                riskBand(0.4),
+                riskBand(0.58),
+                riskBand(0.75),
+                riskBand(0.9),
+              ] as const).map(({ color, tier, pct, description }) => (
+                <div key={tier} className="rounded-md border border-white/5 bg-white/3 p-1.5">
                   <div className="flex items-center gap-2">
                     <div className="relative flex h-5 w-10 flex-shrink-0 overflow-hidden rounded border border-white/10 shadow-inner">
-                      <div className="flex-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}22)` }} />
+                      <div className="flex-1" style={{ background: color }} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-semibold text-white">{label}</div>
-                      <div className="truncate text-[9px] text-zinc-400">{desc}</div>
+                      <div className="text-[11px] font-semibold text-white">{tier}</div>
+                      <div className="truncate text-[9px] text-zinc-400">{description}</div>
                     </div>
                     <div className="flex-shrink-0 text-right">
                       <div className="text-[9px] font-mono text-zinc-400">{pct}</div>

@@ -100,6 +100,7 @@ export default function LiveMap({
   const overlays = useRef<LayerGroup | null>(null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [legendCollapsed, setLegendCollapsed] = useState(false);
+  const legendManuallyToggledRef = useRef(false);
   const onLocationSelectRef = useRef(onLocationSelect);
 
   useEffect(() => {
@@ -118,7 +119,10 @@ export default function LiveMap({
     const syncCompactMode = (event: MediaQueryList | MediaQueryListEvent) => {
       const compact = event.matches;
       setIsCompactViewport(compact);
-      setLegendCollapsed(compact);
+      // Respect explicit user choice after manual toggle.
+      if (!legendManuallyToggledRef.current) {
+        setLegendCollapsed(compact);
+      }
     };
 
     syncCompactMode(mediaQuery);
@@ -299,7 +303,11 @@ export default function LiveMap({
         {legendCollapsed ? (
           <button
             type="button"
-            onClick={() => setLegendCollapsed(false)}
+            onClick={(event) => {
+              event.stopPropagation();
+              legendManuallyToggledRef.current = true;
+              setLegendCollapsed(false);
+            }}
             className="pointer-events-auto rounded-full border border-white/20 bg-zinc-900/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-100 shadow-lg backdrop-blur-md"
           >
             Show risk scale
@@ -310,7 +318,11 @@ export default function LiveMap({
               <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300">Risk Scale</div>
               <button
                 type="button"
-                onClick={() => setLegendCollapsed(true)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  legendManuallyToggledRef.current = true;
+                  setLegendCollapsed(true);
+                }}
                 className="rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-200"
               >
                 Hide

@@ -61,6 +61,21 @@ feat: add live cyclone wind ingestion via OpenWeather fallback
 - [ ] No secrets committed (`.env.local` excluded)
 - [ ] Screenshots added for UI changes
 
+## Demo Video Expectations
+
+When your change affects user-facing behavior, update the demo section in README and keep the walkthrough current.
+
+Suggested demo flow (about 1-2 min):
+
+1. Overview and mission snapshot
+2. Live map plus signals
+3. Action queue workflow
+4. Incident feed and status changes
+5. Analytics mode and exports
+6. Mobile/tablet responsiveness
+
+Keep one canonical Loom link in README and include a "Last updated" date under the video section.
+
 ## Reporting Issues
 
 When filing an issue, include:

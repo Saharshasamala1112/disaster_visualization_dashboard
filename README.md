@@ -12,8 +12,14 @@
 
 ### Demo Video (1–2 min)
 
-- Loom walkthrough: add your recording link here (recommended for judges/recruiters)
-- Suggested script: overview -> map + signals -> action queue -> incident feed -> analytics mode -> mobile/tablet view
+Watch the product walkthrough:
+
+[![Disaster Dashboard Demo](https://cdn.loom.com/sessions/thumbnails/7286b0d7d5374eb4b4d57da97c445365-with-play.gif)](https://www.loom.com/share/7286b0d7d5374eb4b4d57da97c445365)
+
+Direct link (fallback):
+https://www.loom.com/share/7286b0d7d5374eb4b4d57da97c445365
+
+Last updated: Apr 2026
 
 ## Preview
 

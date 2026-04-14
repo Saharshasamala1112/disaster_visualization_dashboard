@@ -2,7 +2,7 @@
 
 **Enterprise-grade real-time disaster monitoring, response coordination, and situational awareness platform** — built with Next.js 16, Turbopack, Leaflet, and live operational intelligence.
 
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen) ![Next.js](https://img.shields.io/badge/next.js-16.2.3-black?logo=nextdotjs) ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-3178C6?logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/tailwind-4.x-06B6D4?logo=tailwindcss&logoColor=white) ![Leaflet](https://img.shields.io/badge/maps-leaflet-199900?logo=leaflet&logoColor=white) ![TanStack Query](https://img.shields.io/badge/TanStack%20Query-5.x-FF4154?logo=reactquery&logoColor=white) ![Tests](https://img.shields.io/badge/tests-11%20passing-brightgreen?logo=vitest) ![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?logo=pwa) ![Framer Motion](https://img.shields.io/badge/animation-framer--motion-ff4d8d) ![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-production--ready-brightgreen) ![Next.js](https://img.shields.io/badge/next.js-16.2.3-black?logo=nextdotjs) ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-3178C6?logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/tailwind-4.x-06B6D4?logo=tailwindcss&logoColor=white) ![Leaflet](https://img.shields.io/badge/maps-leaflet-199900?logo=leaflet&logoColor=white) ![TanStack Query](https://img.shields.io/badge/TanStack%20Query-5.x-FF4154?logo=reactquery&logoColor=white) ![Tests](https://img.shields.io/badge/tests-11%20passing-brightgreen?logo=vitest) ![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?logo=pwa) ![Framer Motion](https://img.shields.io/badge/animation-framer--motion-ff4d8d) ![License](https://img.shields.io/badge/license-MIT-green) [![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Enforced-2f855a)](CODE_OF_CONDUCT.md) [![Security Policy](https://img.shields.io/badge/Security-Policy-0b7285)](SECURITY.md)
 
 [![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-disaster--visualization--dashboard.vercel.app-16a34a?style=for-the-badge)](https://disaster-visualization-dashboard.vercel.app)
 
@@ -20,6 +20,20 @@ Direct link (fallback):
 https://www.loom.com/share/7286b0d7d5374eb4b4d57da97c445365
 
 Last updated: Apr 2026
+
+## GitHub Discoverability Setup
+
+Recommended repository description:
+
+```text
+Enterprise-grade real-time disaster monitoring and response command center built with Next.js, Leaflet, and live operational intelligence.
+```
+
+Recommended repository topics:
+
+```text
+nextjs, typescript, disaster-response, crisis-management, geospatial, leaflet, pwa, real-time-dashboard, emergency-operations, data-visualization
+```
 
 ## Preview
 
@@ -475,6 +489,8 @@ Community standards and governance:
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Security Policy](SECURITY.md)
 - [License](LICENSE)
+- [Changelog](CHANGELOG.md)
+- [Release Checklist](RELEASE_CHECKLIST.md)
 
 Contributions welcome! Please:
 
